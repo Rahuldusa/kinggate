@@ -1,0 +1,1000 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+
+{% block title %}King Gate - Reports{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        .lr-page {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            padding: 24px;
+            min-height: 100%;
+            color: #0f172a;
+        }
+
+        .lr-page .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .lr-page .card-title {
+            font-size: 1.375rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #0f172a;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .lr-page .card-title .title-icon {
+            width: 36px; height: 36px;
+            background: #1a56db;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px; flex-shrink: 0;
+        }
+
+        .lr-page .ledger-summary {
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .lr-page .ledger-summary.state-advance {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #86efac;
+        }
+
+        .lr-page .ledger-summary.state-outstanding {
+            background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+            border-color: #fca5a5;
+        }
+
+        .lr-page .ledger-summary.state-settled {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #86efac;
+        }
+
+        .lr-page .ledger-summary h3 {
+            font-size: 0.7rem; font-weight: 700;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .lr-page .ledger-summary.state-advance h3,
+        .lr-page .ledger-summary.state-settled h3   { color: #15803d; }
+        .lr-page .ledger-summary.state-outstanding h3 { color: #b91c1c; }
+
+        .lr-page .ledger-summary .subtitle { font-size: 0.75rem; }
+        .lr-page .ledger-summary.state-advance .subtitle,
+        .lr-page .ledger-summary.state-settled .subtitle   { color: #16a34a; }
+        .lr-page .ledger-summary.state-outstanding .subtitle { color: #dc2626; opacity: 0.8; }
+
+        .lr-page .ledger-amount {
+            font-size: 1.75rem; font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            text-align: right;
+        }
+        .lr-page .ledger-summary.state-advance .ledger-amount,
+        .lr-page .ledger-summary.state-settled .ledger-amount   { color: #057a55; }
+        .lr-page .ledger-summary.state-outstanding .ledger-amount { color: #c81e1e; }
+
+        .lr-page .ledger-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            padding: 4px 12px; border-radius: 999px; margin-top: 8px;
+        }
+        .lr-page .ledger-badge.badge-advance   { background: #bbf7d0; color: #15803d; }
+        .lr-page .ledger-badge.badge-outstanding { background: #fecaca; color: #b91c1c; }
+        .lr-page .ledger-badge.badge-settled    { background: #bbf7d0; color: #15803d; }
+
+        .lr-page .ledger-pending-notice {
+            margin-top: 8px; font-size: 0.75rem; color: #c27803;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .lr-page .filter-row { margin-bottom: 20px; }
+
+        .lr-page .filter-controls {
+            display: grid;
+            grid-template-columns: 2fr 160px 160px;
+            gap: 12px; align-items: end; margin-bottom: 12px;
+        }
+
+        .lr-page .filter-field { display: flex; flex-direction: column; width: 100%; }
+
+        .lr-page .filter-label {
+            font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            color: #94a3b8; margin-bottom: 5px;
+        }
+
+        .lr-page .filter-field input,
+        .lr-page .filter-field .form-control {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            color: #0f172a;
+            background: white;
+            height: 38px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            width: 100%;
+        }
+
+        .lr-page .filter-field input:focus,
+        .lr-page .filter-field .form-control:focus {
+            outline: none;
+            border-color: #1a56db;
+            box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+        }
+
+        .lr-page .filter-actions {
+            grid-column: 1 / -1;
+            display: flex; gap: 10px; flex-wrap: wrap;
+        }
+
+        .lr-page .btn-filter {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 8px 16px; border: none;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8125rem; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
+            height: 38px; white-space: nowrap; color: white;
+        }
+
+        .lr-page .btn-filter:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+        .lr-page .btn-apply   { background: #057a55; }
+        .lr-page .btn-apply:hover:not(:disabled)  { background: #046c4e; transform: translateY(-1px); }
+
+        .lr-page .btn-clear   { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .lr-page .btn-clear:hover:not(:disabled)  { background: #e2e8f0; color: #0f172a; }
+
+        .lr-page .btn-export  { background: #1a56db; }
+        .lr-page .btn-export:hover:not(:disabled)  { background: #1e429f; transform: translateY(-1px); }
+
+        .lr-page .btn-email   { background: #7e3af2; }
+        .lr-page .btn-email:hover:not(:disabled)   { background: #6c2bd9; transform: translateY(-1px); }
+
+        .lr-page .select2-container { width: 100% !important; z-index: 1050; }
+        .lr-page .select2-container--bootstrap-5 .select2-selection {
+            min-height: 38px; border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .lr-page .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            padding: 6px 12px; font-size: 0.875rem; color: #0f172a;
+        }
+        .lr-page .select2-dropdown { z-index: 1060; border-radius: 8px; border-color: #e2e8f0; }
+        .lr-page .select2-results__option--location {
+            padding-left: 28px !important; font-size: 0.8rem; color: #94a3b8;
+        }
+        .lr-page .select2-results__option--location:before { content: "└─"; margin-right: 6px; color: #cbd5e1; }
+
+        .lr-page .table-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(100vh - 320px);
+            min-height: 200px;
+            position: relative;
+        }
+
+        .lr-page table {
+            width: 100%; border-collapse: collapse;
+            background: white; font-size: 0.8125rem;
+        }
+
+        .lr-page thead {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .lr-page th {
+            text-align: left; padding: 11px 10px;
+            font-size: 0.68rem; font-weight: 700;
+            color: #94a3b8; border: 1px solid #e2e8f0;
+            white-space: nowrap;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        .lr-page td {
+            padding: 10px; color: #0f172a;
+            border: 1px solid #e2e8f0; vertical-align: middle;
+            font-size: 0.8125rem;
+        }
+
+        .lr-page tbody tr:hover { background: #fafbff; }
+        .lr-page tbody tr.unapproved-payment { background: #fffbeb; }
+        .lr-page tbody tr.unapproved-payment:hover { background: #fef3c7; }
+
+        .lr-page .col-number       { text-align: center; width: 40px; font-weight: 500; font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #94a3b8; }
+        .lr-page .col-customer     { min-width: 200px; }
+        .lr-page .col-contact      { min-width: 140px; }
+        .lr-page .col-subscription { min-width: 180px; }
+        .lr-page .col-company      { min-width: 80px; }
+        .lr-page .col-address      { min-width: 80px; }
+        .lr-page .col-area         { min-width: 80px; }
+        .lr-page .col-period       { min-width: 120px; }
+        .lr-page .col-service      { min-width: 100px; }
+        .lr-page .col-payment      { min-width: 100px; }
+        .lr-page .col-paydate      { min-width: 100px; }
+        .lr-page .col-amount       { text-align: right; min-width: 90px; font-family: 'DM Mono', monospace; }
+        .lr-page .col-discount     { text-align: right; min-width: 90px; font-family: 'DM Mono', monospace; }
+        .lr-page .col-actions      { min-width: 120px; text-align: center; }
+
+        .lr-page .customer-name     { font-weight: 600; color: #0f172a; font-size: 0.875rem; margin-bottom: 4px; }
+        .lr-page .customer-location { font-size: 0.7rem; color: #94a3b8; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
+        .lr-page .customer-invoice  { font-size: 0.7rem; color: #7e3af2; font-weight: 500; }
+
+        .lr-page .contact-info  { display: flex; flex-direction: column; gap: 4px; }
+        .lr-page .contact-item  { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #475569; }
+        .lr-page .contact-item i { color: #94a3b8; font-size: 0.7rem; }
+        .lr-page .contact-label {
+            font-size: 0.625rem; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.04em;
+            font-weight: 700; margin-bottom: 2px;
+        }
+        .lr-page .location-contact {
+            background: #f8fafc; padding: 5px 8px;
+            border-radius: 4px; border-left: 3px solid #1a56db;
+        }
+        .lr-page .customer-contact {
+            background: #fffbeb; padding: 5px 8px;
+            border-radius: 4px; border-left: 3px solid #c27803;
+        }
+
+        .lr-page .badge {
+            font-size: 0.68rem; padding: 4px 10px;
+            border-radius: 999px; font-weight: 700;
+            display: inline-block; text-align: center;
+            min-width: 72px; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .lr-page .badge-running          { background: #def7ec; color: #057a55; }
+        .lr-page .badge-inactive         { background: #f1f5f9; color: #475569; }
+        .lr-page .badge-pending          { background: #fde8e8; color: #c81e1e; }
+        .lr-page .badge-paid             { background: #def7ec; color: #057a55; }
+        .lr-page .badge-pending-approval { background: #fef3c7; color: #c27803; }
+        .lr-page .badge-upgrade {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; font-weight: 700; padding: 5px 12px;
+            border-radius: 999px;
+            display: inline-flex; align-items: center; gap: 5px;
+            box-shadow: 0 2px 6px rgba(102,126,234,0.3);
+        }
+
+        .lr-page .upgrade-indicator {
+            display: inline-block;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 3px solid #667eea;
+            padding: 8px 12px; border-radius: 6px;
+            font-size: 0.7rem; margin-top: 6px; line-height: 1.7;
+        }
+        .lr-page .upgrade-indicator strong { color: #667eea; font-weight: 600; }
+        .lr-page .upgrade-arrow { display: inline-block; color: #667eea; font-weight: bold; margin: 0 3px; }
+
+        .lr-page .action-buttons { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
+        .lr-page .btn-action {
+            padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer;
+            font-size: 0.7rem; font-weight: 600; color: white;
+            text-align: center; width: 100%; transition: opacity 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .lr-page .btn-action:hover { opacity: 0.85; }
+        .lr-page .btn-action-pending          { background: #c81e1e; }
+        .lr-page .btn-action-reminder         { background: #475569; }
+        .lr-page .btn-action-paid             { background: #057a55; }
+        .lr-page .btn-action-pending-approval { background: #c27803; }
+        .lr-page .btn-action-upgraded {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: default;
+        }
+
+        .lr-page .btn-whatsapp {
+            background: #25D366; width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; margin: 0 auto; border: none; cursor: pointer;
+        }
+        .lr-page .btn-whatsapp i { font-size: 16px; color: white; }
+
+        .lr-page .amount-pending-approval {
+            color: #c27803; font-style: italic; font-size: 0.72rem;
+            display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+        }
+        .lr-page .amount-pending-approval .pending-icon-row { display: flex; align-items: center; gap: 4px; }
+        .lr-page .amount-pending-approval .pending-sub { font-size: 0.65rem; color: #d97706; font-style: normal; }
+
+        .lr-page .amount-not-adjusted { color: #c27803; text-align: right; font-family: 'DM Mono', monospace; }
+        .lr-page .amount-not-adjusted small { display: block; font-size: 0.65rem; color: #d97706; font-style: italic; }
+
+        .lr-page .bill-total-cell { text-align: right; }
+        .lr-page .bill-status-label { display: block; font-size: 0.65rem; margin-top: 2px; font-style: italic; }
+
+        .lr-page .balance-zero    { color: #057a55; font-weight: 700; font-family: 'DM Mono', monospace; }
+        .lr-page .balance-nonzero { color: #c81e1e; font-weight: 700; font-family: 'DM Mono', monospace; }
+
+        /* Discount cell styling */
+        .lr-page .discount-amount { color: #057a55; font-weight: 600; font-family: 'DM Mono', monospace; }
+        .lr-page .discount-zero   { color: #cbd5e1; font-family: 'DM Mono', monospace; }
+
+        .lr-page .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .lr-page .empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; opacity: 0.3; }
+        .lr-page .empty-state h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #475569; }
+        .lr-page .empty-state p  { font-size: 0.875rem; color: #94a3b8; }
+
+        @media (max-width: 1200px) {
+            .lr-page .filter-controls { grid-template-columns: 1fr; }
+            .lr-page .filter-actions  { grid-column: 1; }
+        }
+        @media (max-width: 768px) {
+            .lr-page { padding: 16px; }
+            .lr-page .card { padding: 16px; }
+            .lr-page .filter-actions .btn-filter { flex: 1; min-width: 120px; }
+            .lr-page .ledger-summary { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .lr-page .ledger-amount { text-align: left; }
+        }
+    </style>
+{% endblock styles %}
+
+{% block content %}
+<div class="lr-page">
+<div class="container-fluid p-0">
+<div class="card">
+
+    <h2 class="card-title">
+        <span class="title-icon"><i class="bi bi-journal-text"></i></span>
+        Reports
+    </h2>
+
+    <!-- Filter Form -->
+    <form id="filterForm" method="GET" class="filter-row">
+        <div class="filter-controls">
+            <div class="filter-field">
+                <label class="filter-label">Customer / Location</label>
+                <select class="form-select" name="entity" id="entitySelect">
+                    <option value="">All Customers</option>
+                    {% for customer in customers %}
+                        <option value="customer_{{ customer.id }}"
+                                data-search="{{ customer.name|lower }} {{ customer.address|lower }} {% for c in customer.contacts.all %}{{ c.phone_number }} {% endfor %}"
+                                data-type="customer"
+                                data-email="{{ customer.email }}"
+                                data-start-date="{{ customer.start_date|date:'Y-m-d'|default:'' }}"
+                                data-customer-name="{{ customer.name }}"
+                                {% if selected_entity == "customer_"|add:customer.id|stringformat:"s" %}selected{% endif %}>
+                            {{ customer.name }}{% if customer.contacts.all %} ({% for c in customer.contacts.all %}{{ c.phone_number }}{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %}
+                        </option>
+                        {% for location in customer.locations.all %}
+                            <option value="customer_{{ customer.id }}"
+                                    data-search="{{ customer.name|lower }} {{ location.location_name|lower }} {{ location.address|lower }} {{ location.area.name|lower|default:'' }} {{ location.city.name|lower|default:'' }} {{ location.state.name|lower|default:'' }} {{ location.location_contact|default:'' }} {{ location.location_email|lower|default:'' }}"
+                                    data-type="location"
+                                    data-customer-id="{{ customer.id }}"
+                                    data-customer-name="{{ customer.name }}"
+                                    data-location-name="{{ location.location_name }}"
+                                    data-email="{{ customer.email }}"
+                                    data-start-date="{{ customer.start_date|date:'Y-m-d'|default:'' }}"
+                                    data-location-start-date="{{ location.start_date|date:'Y-m-d'|default:'' }}"
+                                    class="location-option"
+                                    {% if selected_entity == "customer_"|add:customer.id|stringformat:"s" %}selected{% endif %}>
+                                &nbsp;&nbsp;&nbsp;└─ {{ customer.name }} - {{ location.location_name }}{% if location.area or location.city %} ({{ location.area.name|default:'' }}{% if location.area and location.city %}, {% endif %}{{ location.city.name|default:'' }}){% endif %}
+                            </option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" id="startDate" value="{{ start_date }}">
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">End Date</label>
+                <input type="date" name="end_date" class="form-control" id="endDate" value="{{ end_date }}">
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn-filter btn-apply">
+                    <i class="bi bi-funnel"></i> Apply Filters
+                </button>
+                <button type="button" id="clearBtn" class="btn-filter btn-clear">
+                    <i class="bi bi-x-circle"></i> Clear
+                </button>
+                <button type="button" id="exportBtn" class="btn-filter btn-export"
+                        {% if not data_logs %}disabled{% endif %}>
+                    <i class="bi bi-file-earmark-excel"></i> Export
+                </button>
+                <button type="button" id="emailBtn" class="btn-filter btn-email"
+                        {% if not data_logs or not selected_entity %}disabled{% endif %}>
+                    <i class="bi bi-envelope"></i> Email Report
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Ledger Summary -->
+    {% if customer_ledger_balance is not None %}
+        {% if customer_advance_amount and customer_advance_amount > 0 %}
+            <div class="ledger-summary state-advance">
+                <div>
+                    <h3><i class="bi bi-piggy-bank-fill" style="margin-right:6px;"></i>Advance Balance</h3>
+                    <div class="subtitle">Customer has paid in advance — no outstanding dues</div>
+                    <span class="ledger-badge badge-advance">
+                        <i class="bi bi-arrow-up-circle-fill"></i> Advance Paid
+                    </span>
+                </div>
+                <div style="text-align:right;">
+                    <div class="ledger-amount">₹{{ customer_advance_amount|floatformat:2 }}</div>
+                </div>
+            </div>
+
+        {% elif customer_ledger_balance > 0 %}
+            <div class="ledger-summary state-outstanding">
+                <div>
+                    <h3><i class="bi bi-exclamation-triangle-fill" style="margin-right:6px;"></i>Total Outstanding Balance</h3>
+                    <div class="subtitle">Sum of all bills with remaining balance for this customer</div>
+                    <div id="ledgerPendingNotice" class="ledger-pending-notice" style="display:none;">
+                        <i class="bi bi-clock-history"></i>
+                        <span id="ledgerPendingText"></span>
+                    </div>
+                    <span class="ledger-badge badge-outstanding" style="margin-top:8px;">
+                        <i class="bi bi-exclamation-circle-fill"></i> Outstanding
+                    </span>
+                </div>
+                <div style="text-align:right;">
+                    <div class="ledger-amount" id="ledgerAmount">₹{{ customer_ledger_balance|floatformat:2 }}</div>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="ledger-summary state-settled">
+                <div>
+                    <h3><i class="bi bi-check-circle-fill" style="margin-right:6px;"></i>Total Outstanding Balance</h3>
+                    <div class="subtitle">All bills have been fully settled for this customer</div>
+                    <span class="ledger-badge badge-settled" style="margin-top:8px;">
+                        <i class="bi bi-check-circle-fill"></i> Fully Settled
+                    </span>
+                </div>
+                <div style="text-align:right;">
+                    <div class="ledger-amount" id="ledgerAmount">₹0.00</div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Table -->
+    <div class="table-container">
+        {% if data_logs is None %}
+            <div class="empty-state">
+                <i class="bi bi-filter-circle"></i>
+                <h3>No Filters Applied</h3>
+                <p>Please select a customer or date range to view reports.</p>
+            </div>
+
+        {% elif data_logs %}
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-number">#</th>
+                        <th class="col-customer">Customer</th>
+                        <th class="col-contact">Contact Number</th>
+                        <th class="col-subscription">Subscription</th>
+                        <th class="col-company">Company</th>
+                        <th class="col-address">Address</th>
+                        <th class="col-area">Area</th>
+                        <th style="min-width:200px;">Items</th>
+                        <th class="col-period">Statement Period</th>
+                        <th class="col-service">Service Status</th>
+                        <th class="col-payment">Payment Mode</th>
+                        <th class="col-paydate">Pay Date</th>
+                        <th class="col-amount">Bill Total</th>
+                        <th class="col-discount">Discount</th>  <!-- NEW -->
+                        <th class="col-amount">Paid (This Txn)</th>
+                        <th class="col-amount">Total Paid</th>
+                        <th class="col-amount">Pending Balance</th>
+                        <th class="col-paydate">Created</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dataLogsTableBody">
+                    {% for log in data_logs %}
+                        {% if log.is_payment and not log.is_approved %}
+                            <tr data-log-id="{{ log.id }}"
+                                data-is-payment="true"
+                                data-is-approved="false"
+                                data-is-upgrade="{{ log.is_upgrade|yesno:'true,false' }}"
+                                data-balance="{{ log.balance_amount|default:'0' }}"
+                                data-payment-amount="{{ log.payment_amount|default:'0' }}"
+                                class="unapproved-payment">
+                        {% else %}
+                            <tr data-log-id="{{ log.id }}"
+                                data-is-payment="{{ log.is_payment|yesno:'true,false' }}"
+                                data-is-approved="{{ log.is_approved|yesno:'true,false' }}"
+                                data-is-upgrade="{{ log.is_upgrade|yesno:'true,false' }}"
+                                data-balance="{{ log.balance_amount|default:'0' }}"
+                                data-payment-amount="{{ log.payment_amount|default:'0' }}">
+                        {% endif %}
+
+                            <td class="col-number">{{ forloop.counter }}</td>
+
+                            <td class="col-customer">
+                                <div class="customer-name">{{ log.customer.name|default:"N/A" }}</div>
+                                {% if log.location %}
+                                    <div class="customer-location">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        {{ log.location.location_name }}
+                                    </div>
+                                {% endif %}
+                                {% if log.billing_record and log.billing_record.invoice_number %}
+                                    <div class="customer-invoice">
+                                        <i class="bi bi-receipt"></i> {{ log.billing_record.invoice_number }}
+                                    </div>
+                                {% endif %}
+                            </td>
+
+                            <td class="col-contact">
+                                <div class="contact-info">
+                                    {% if log.location %}
+                                        {% if log.location.location_contact %}
+                                            <div class="location-contact">
+                                                <div class="contact-label">Location</div>
+                                                <div class="contact-item">
+                                                    <i class="bi bi-telephone-fill"></i>
+                                                    <span>{{ log.location.location_contact }}</span>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        {% if log.customer.contacts.all %}
+                                            <div class="customer-contact">
+                                                <div class="contact-label">Customer</div>
+                                                {% for contact in log.customer.contacts.all %}
+                                                    <div class="contact-item">
+                                                        <i class="bi bi-person-fill"></i>
+                                                        <span>{{ contact.phone_number }}</span>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if log.customer.contacts.all %}
+                                            <div class="customer-contact">
+                                                <div class="contact-label">Customer</div>
+                                                {% for contact in log.customer.contacts.all %}
+                                                    <div class="contact-item">
+                                                        <i class="bi bi-telephone-fill"></i>
+                                                        <span>{{ contact.phone_number }}</span>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <span style="color:#94a3b8;font-size:0.72rem;">No contact</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td class="col-subscription">
+                                {% if log.is_upgrade %}
+                                    <span class="badge badge-upgrade">
+                                        <i class="bi bi-arrow-up-circle"></i> UPGRADED
+                                    </span>
+                                    <div class="upgrade-indicator">
+                                        <strong>From:</strong> {{ log.old_subscription_plan.name|default:"N/A" }}
+                                        <span class="upgrade-arrow">→</span>
+                                        <strong>To:</strong> {{ log.new_subscription_plan.name|default:"N/A" }}
+                                        {% if log.upgrade_amount %}
+                                            <br><strong>Difference:</strong>
+                                            <span style="color:#057a55;">+₹{{ log.upgrade_amount|floatformat:2 }}/month</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    {% if log.location and log.location.subscription_plan %}
+                                        {{ log.location.subscription_plan.name|default:"N/A" }}
+                                    {% elif log.customer.subscription_plan %}
+                                        {{ log.customer.subscription_plan.name|default:"N/A" }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+
+                            <td class="col-company">{{ log.customer.company.name|default:"" }}</td>
+
+                            <td class="col-address">
+                                {% if log.location %}{{ log.location.address|default:"" }}
+                                {% else %}{{ log.customer.address|default:"" }}{% endif %}
+                            </td>
+
+                            <td class="col-area">
+                                {% if log.location %}{{ log.location.area|default:"" }}
+                                {% else %}{{ log.customer.area|default:"" }}{% endif %}
+                            </td>
+
+                            <td style="font-size:0.78rem;color:#475569;">
+                                {% if log.billing_record and log.billing_record.bill_items.exists %}
+                                    <div style="line-height:1.7;">
+                                        {% for item in log.billing_record.bill_items.all %}
+                                            <div style="margin-bottom:2px;">
+                                                • {{ item.item_name }}
+                                                <span style="color:#94a3b8;">(Qty: {{ item.quantity }})</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span style="color:#cbd5e1;">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="col-period">
+                                {% if log.billing_period_start and log.billing_period_end %}
+                                    {{ log.billing_period_start|date:"d/m/Y" }} – {{ log.billing_period_end|date:"d/m/Y" }}
+                                {% elif log.is_upgrade %}
+                                    <span class="badge" style="background:#667eea;color:white;border-radius:999px;">
+                                        Upgrade: {{ log.billing_period_start|date:"d/m/Y" }}
+                                    </span>
+                                {% else %}—{% endif %}
+                            </td>
+
+                            <td class="col-service">
+                                {% if log.is_upgrade %}
+                                    <span class="badge badge-upgrade" style="min-width:auto;">
+                                        <i class="bi bi-arrow-up-circle-fill"></i> Upgrade
+                                    </span>
+                                {% elif log.location %}
+                                    {% if log.location.is_active %}
+                                        <span class="badge badge-running">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-inactive">Inactive</span>
+                                    {% endif %}
+                                {% elif log.customer.status == 'Active' %}
+                                    <span class="badge badge-running">Running</span>
+                                {% else %}
+                                    <span class="badge badge-inactive">Not Running</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="col-payment">{{ log.payment_mode|default:"—" }}</td>
+                            <td class="col-paydate">{{ log.payment_date|date:"d/m/Y"|default:"—" }}</td>
+
+                            <!-- Bill Total -->
+                            <td class="col-amount bill-total-cell">
+                                {% if log.is_upgrade %}
+                                    <span style="color:#94a3b8;">—</span>
+                                {% elif log.billing_record %}
+                                    ₹{{ log.billing_record.amount|floatformat:2 }}
+                                    {% if log.billing_record.balance_amount == 0 %}
+                                        <span class="bill-status-label" style="color:#057a55;">
+                                            <i class="bi bi-check-circle-fill"></i> Fully Paid
+                                        </span>
+                                    {% elif log.billing_record.balance_amount and log.billing_record.balance_amount > 0 and log.billing_record.paid_amount and log.billing_record.paid_amount > 0 %}
+                                        <span class="bill-status-label" style="color:#c27803;">
+                                            <i class="bi bi-clock-history"></i> Partial
+                                        </span>
+                                    {% else %}
+                                        <span class="bill-status-label" style="color:#c81e1e;">
+                                            <i class="bi bi-x-circle"></i> Unpaid
+                                        </span>
+                                    {% endif %}
+                                {% else %}—{% endif %}
+                            </td>
+
+                            <!-- Discount (NEW) -->
+                            <td class="col-discount">
+                                {% if log.is_upgrade %}
+                                    <span style="color:#94a3b8;">—</span>
+                                {% elif log.discount_given and log.discount_given > 0 %}
+                                    <span class="discount-amount">-₹{{ log.discount_given|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="discount-zero">₹0.00</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Paid (This Transaction) -->
+                            <td class="col-amount">
+                                {% if log.is_upgrade %}
+                                    <span style="color:#94a3b8;">—</span>
+                                {% elif log.is_payment and not log.is_approved %}
+                                    <div class="amount-pending-approval">
+                                        <div class="pending-icon-row">
+                                            <i class="bi bi-clock-history"></i>
+                                            <span>Awaiting Approval</span>
+                                        </div>
+                                        <span class="pending-sub">not yet adjusted</span>
+                                    </div>
+                                {% elif not log.is_payment %}
+                                    {% if log.status == 'Paid' and log.total_paid and log.total_paid > 0 %}
+                                        ₹{{ log.total_paid|floatformat:2 }}
+                                    {% else %}
+                                        <span style="color:#94a3b8;">—</span>
+                                    {% endif %}
+                                {% else %}
+                                    ₹{{ log.payment_amount|default:"0.00"|floatformat:2 }}
+                                {% endif %}
+                            </td>
+
+                            <!-- Total Paid -->
+                            <td class="col-amount">
+                                {% if log.is_upgrade %}
+                                    <span style="color:#94a3b8;">—</span>
+                                {% elif log.is_payment and not log.is_approved %}
+                                    <div class="amount-pending-approval">
+                                        <div class="pending-icon-row">
+                                            <i class="bi bi-clock-history"></i>
+                                            <span>Awaiting Approval</span>
+                                        </div>
+                                        <span class="pending-sub">not yet adjusted</span>
+                                    </div>
+                                {% elif not log.is_payment %}
+                                    {% if log.status == 'Paid' and log.total_paid and log.total_paid > 0 %}
+                                        ₹{{ log.total_paid|floatformat:2 }}
+                                    {% else %}
+                                        <span style="color:#94a3b8;">—</span>
+                                    {% endif %}
+                                {% else %}
+                                    ₹{{ log.total_paid|default:"0.00"|floatformat:2 }}
+                                {% endif %}
+                            </td>
+
+                            <!-- Pending Balance -->
+                            <td class="col-amount">
+                                {% if log.is_upgrade %}
+                                    <span style="color:#94a3b8;">—</span>
+                                {% elif log.is_payment and not log.is_approved %}
+                                    <div class="amount-not-adjusted">
+                                        ₹{{ log.balance_amount|default:"0.00"|floatformat:2 }}
+                                        <small>approval pending</small>
+                                    </div>
+                                {% else %}
+                                    {% if log.balance_amount == 0 or log.balance_amount == None %}
+                                        <span class="balance-zero">₹0.00</span>
+                                    {% else %}
+                                        <span class="balance-nonzero">₹{{ log.balance_amount|floatformat:2 }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+
+                            <td class="col-paydate">{{ log.timestamp|date:"d M, Y" }}</td>
+
+                            <!-- Actions -->
+                            <td class="col-actions">
+                                <div class="action-buttons">
+                                    {% if log.is_upgrade %}
+                                        <button class="btn-action btn-action-upgraded">
+                                            <i class="bi bi-check-circle"></i> Upgraded
+                                        </button>
+                                    {% elif log.is_payment and not log.is_approved %}
+                                        <button class="btn-action btn-action-pending-approval" style="cursor:default;">
+                                            <i class="bi bi-clock-history"></i> Approval Pending
+                                        </button>
+                                    {% elif log.billing_record and log.billing_record.balance_amount == 0 %}
+                                        <button class="btn-action btn-action-paid" style="cursor:default;">
+                                            <i class="bi bi-check-circle-fill"></i> Paid
+                                        </button>
+                                    {% elif log.billing_record and log.billing_record.balance_amount > 0 %}
+                                        <button class="btn-action btn-action-pending">Pending</button>
+                                        <button class="btn-action btn-action-reminder">Reminder</button>
+                                        <button class="btn-whatsapp">
+                                            <i class="bi bi-whatsapp"></i>
+                                        </button>
+                                    {% else %}
+                                        <span style="color:#94a3b8;font-size:0.72rem;">—</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h3>No Records Found</h3>
+                <p>No data logs match your filter criteria. Try adjusting your filters.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+</div><!-- end .lr-page -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function () {
+
+    function updateLedgerNotice() {
+        var $amount = $('#ledgerAmount');
+        if ($amount.length === 0) return;
+
+        var pendingTotal = 0, pendingCount = 0;
+        $('#dataLogsTableBody tr').each(function () {
+            var isUpgrade  = $(this).data('is-upgrade')  === true || $(this).data('is-upgrade')  === 'true';
+            var isPayment  = $(this).data('is-payment')  === true || $(this).data('is-payment')  === 'true';
+            var isApproved = $(this).data('is-approved') === true || $(this).data('is-approved') === 'true';
+            if (isUpgrade || !isPayment || isApproved) return;
+            pendingTotal += parseFloat($(this).data('payment-amount')) || 0;
+            pendingCount++;
+        });
+
+        var $notice = $('#ledgerPendingNotice');
+        if ($notice.length && pendingCount > 0) {
+            $('#ledgerPendingText').text(
+                pendingCount + ' payment' + (pendingCount > 1 ? 's' : '') +
+                ' (₹' + pendingTotal.toFixed(2) + ') awaiting approval'
+            );
+            $notice.show();
+        } else if ($notice.length) {
+            $notice.hide();
+        }
+    }
+
+    updateLedgerNotice();
+
+    $('#entitySelect').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Search by customer name, location, phone, or address',
+        allowClear: true,
+        width: '100%',
+        templateResult: function (data) {
+            if (!data.id) return data.text;
+            return $(data.element).hasClass('location-option')
+                ? $('<span class="select2-results__option--location">' + data.text + '</span>')
+                : data.text;
+        },
+        templateSelection: function (data) {
+            if (!data.id) return data.text;
+            var $o = $(data.element);
+            return $o.hasClass('location-option')
+                ? ($o.attr('data-customer-name') || '') + ' - ' + ($o.attr('data-location-name') || '')
+                : data.text;
+        },
+        matcher: function (params, data) {
+            if ($.trim(params.term) === '') return data;
+            if (!data.id) return null;
+            var t     = params.term.toLowerCase();
+            var text  = data.text.toLowerCase();
+            var extra = ($(data.element).attr('data-search') || '').toLowerCase();
+            return (text.indexOf(t) > -1 || extra.indexOf(t) > -1) ? data : null;
+        }
+    });
+
+    $('#entitySelect').on('change', function () {
+        var $opt        = $(this).find('option:selected');
+        var selectedVal = $(this).val();
+
+        if (selectedVal) {
+            var dates = [];
+            var customerDate = $opt.attr('data-start-date');
+            if (customerDate) dates.push(customerDate);
+            var customerId = $opt.attr('data-customer-id') || selectedVal.replace('customer_', '');
+            $('option.location-option[data-customer-id="' + customerId + '"]').each(function () {
+                var locDate = $(this).attr('data-location-start-date');
+                if (locDate) dates.push(locDate);
+            });
+            var earliest = dates.length
+                ? dates.reduce(function (a, b) { return a < b ? a : b; })
+                : '';
+
+            if (earliest) $('#startDate').val(earliest);
+            $('#endDate').val(new Date().toISOString().split('T')[0]);
+        } else {
+            $('#startDate').val('');
+            $('#endDate').val('');
+        }
+
+        var hasData = $('#dataLogsTableBody tr').length > 0;
+        $('#emailBtn').prop('disabled', !$opt.attr('data-email') || !hasData);
+    });
+
+    $('#emailBtn').on('click', function () {
+        var entity = $('#entitySelect').val();
+        var $opt   = $('#entitySelect').find('option:selected');
+        var email  = $opt.attr('data-email');
+
+        if (!entity)                       { alert('Please select a customer first'); return; }
+        if (!email || email.trim() === '') { alert('No email address found for this customer'); return; }
+        if (!confirm('Send payment report to ' + email + '?')) return;
+
+        var orig = $(this).html();
+        $(this).prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Sending...');
+
+        $.ajax({
+            url: window.location.pathname,
+            type: 'POST',
+            data: {
+                email_report: 'true',
+                entity: entity,
+                start_date: $('#startDate').val(),
+                end_date: $('#endDate').val(),
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (r) {
+                alert(r.success ? 'Email sent to ' + email : 'Error: ' + (r.message || 'Failed'));
+            },
+            error: function (xhr) {
+                var msg = 'Failed to send email.';
+                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                alert(msg);
+            },
+            complete: function () { $('#emailBtn').prop('disabled', false).html(orig); }
+        });
+    });
+
+    $('#filterForm').on('submit', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: window.location.pathname,
+            type: 'GET',
+            data: {
+                entity:     $('#entitySelect').val(),
+                start_date: $('#startDate').val(),
+                end_date:   $('#endDate').val()
+            },
+            success: function (response) {
+                $('.table-container').html($(response).find('.table-container').html());
+                var $newLedger = $(response).find('.ledger-summary');
+                if ($newLedger.length > 0) {
+                    $('.ledger-summary').remove();
+                    $('.table-container').before($newLedger);
+                } else {
+                    $('.ledger-summary').remove();
+                }
+                var hasRows = $(response).find('#dataLogsTableBody tr').length > 0;
+                $('#exportBtn').prop('disabled', !hasRows);
+                var $opt = $('#entitySelect').find('option:selected');
+                $('#emailBtn').prop('disabled', !hasRows || !$opt.attr('data-email'));
+                updateLedgerNotice();
+            },
+            error: function () { alert('An error occurred while filtering data.'); }
+        });
+    });
+
+    $('#clearBtn').on('click', function () {
+        $('#entitySelect').val('').trigger('change');
+        $('#startDate').val('');
+        $('#endDate').val('');
+        window.location.href = window.location.pathname;
+    });
+
+    $('#exportBtn').on('click', function () {
+        var url = window.location.pathname + '?export_excel=true';
+        var e   = $('#entitySelect').val();
+        var s   = $('#startDate').val();
+        var en  = $('#endDate').val();
+        if (e)  url += '&entity='     + e;
+        if (s)  url += '&start_date=' + s;
+        if (en) url += '&end_date='   + en;
+        window.location.href = url;
+    });
+
+});
+</script>
+{% endblock content %}

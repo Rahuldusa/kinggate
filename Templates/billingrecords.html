@@ -1,0 +1,779 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}Billing Records{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e429f;
+        --primary-light: #e8f0fe;
+        --success: #057a55;
+        --success-light: #def7ec;
+        --warning: #c27803;
+        --warning-light: #fdf6b2;
+        --danger: #c81e1e;
+        --danger-light: #fde8e8;
+        --info: #0369a1;
+        --info-light: #e0f2fe;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --surface-3: #f1f5f9;
+        --border: #e2e8f0;
+        --border-strong: #cbd5e1;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+        --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05);
+        --radius: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --font: 'DM Sans', sans-serif;
+        --font-mono: 'DM Mono', monospace;
+    }
+
+    .billing-page { font-family: var(--font); }
+
+    /* ── Toasts ── */
+    .billing-toast-container {
+        position: fixed; top: 20px; left: 50%;
+        transform: translateX(-50%);
+        z-index: 99999;
+        display: flex; flex-direction: column; gap: 10px;
+        min-width: 340px; pointer-events: none;
+    }
+    .billing-toast-container > * { pointer-events: all; }
+    .billing-toast {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 14px 16px; border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg); border: 1px solid transparent;
+        animation: bToastIn 0.3s ease;
+    }
+    @keyframes bToastIn { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+    .billing-toast.success { background:#f0fdf4; border-color:#86efac; }
+    .billing-toast.error   { background:#fef2f2; border-color:#fca5a5; }
+    .billing-toast.warning { background:#fffbeb; border-color:#fcd34d; }
+    .billing-toast.info    { background:#eff6ff; border-color:#93c5fd; }
+    .billing-toast .t-icon { font-size:18px; margin-top:1px; flex-shrink:0; }
+    .billing-toast.success .t-icon { color:#16a34a; }
+    .billing-toast.error   .t-icon { color:#dc2626; }
+    .billing-toast.warning .t-icon { color:#d97706; }
+    .billing-toast.info    .t-icon { color:#2563eb; }
+    .billing-toast .t-body { flex:1; font-size:.875rem; line-height:1.5; }
+    .billing-toast .t-close { background:none; border:none; cursor:pointer; color:var(--text-muted); padding:0; font-size:14px; line-height:1; }
+
+    /* ── Page header ── */
+    .b-page-header {
+        display:flex; align-items:center; justify-content:space-between;
+        flex-wrap:wrap; gap:12px; margin-bottom:20px;
+    }
+    .b-page-title {
+        font-size:1.375rem; font-weight:700; color:var(--text-primary);
+        margin:0; display:flex; align-items:center; gap:10px;
+    }
+    .b-title-icon {
+        width:36px; height:36px; background:var(--primary);
+        border-radius:var(--radius); display:flex;
+        align-items:center; justify-content:center;
+        color:white; font-size:16px; flex-shrink:0;
+    }
+    .b-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+    /* ── Search ── */
+    .b-search-wrap { position:relative; flex:1; min-width:220px; max-width:360px; }
+    .b-search-wrap .b-search-icon {
+        position:absolute; left:11px; top:50%;
+        transform:translateY(-50%);
+        color:var(--text-muted); font-size:13px; pointer-events:none;
+    }
+    .b-search-input {
+        width:100%; padding:8px 36px 8px 32px;
+        border:1px solid var(--border); border-radius:var(--radius);
+        font-family:var(--font); font-size:.875rem;
+        background:var(--surface); color:var(--text-primary);
+        transition:border-color .15s, box-shadow .15s; height:38px;
+    }
+    .b-search-input:focus {
+        outline:none; border-color:var(--primary);
+        box-shadow:0 0 0 3px rgba(26,86,219,.1);
+    }
+    .b-search-clear {
+        position:absolute; right:9px; top:50%;
+        transform:translateY(-50%);
+        color:var(--text-muted); cursor:pointer;
+        padding:4px; font-size:13px; display:none;
+        line-height:1; user-select:none; background:none; border:none;
+    }
+    .b-search-clear:hover { color:var(--danger); }
+
+    /* ── Shared clickable style (used on span-based action elements) ── */
+    .b-btn {
+        display:inline-flex; align-items:center; gap:7px;
+        padding:8px 14px; border-radius:var(--radius);
+        font-family:var(--font); font-size:.8125rem; font-weight:600;
+        border:1px solid transparent; cursor:pointer;
+        transition:all .15s; white-space:nowrap;
+        height:38px; text-decoration:none; user-select:none;
+    }
+    .b-btn-primary { background:var(--primary); color:white; border-color:var(--primary); }
+    .b-btn-primary:hover { background:var(--primary-dark); color:white; transform:translateY(-1px); box-shadow:0 4px 12px rgba(26,86,219,.3); }
+    .b-btn-success { background:var(--success); color:white; border-color:var(--success); }
+    .b-btn-success:hover { background:#046c4e; color:white; transform:translateY(-1px); box-shadow:0 4px 12px rgba(5,122,85,.3); }
+    .b-btn-outline { background:var(--surface); color:var(--text-secondary); border-color:var(--border); }
+    .b-btn-outline:hover { background:var(--surface-3); color:var(--text-primary); border-color:var(--border-strong); }
+
+    /* ── Stats ── */
+    .b-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+    .b-stat-card {
+        background:var(--surface); border:1px solid var(--border);
+        border-radius:var(--radius-lg); padding:14px 18px;
+        display:flex; align-items:center; gap:12px; box-shadow:var(--shadow-sm);
+    }
+    .b-stat-icon { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    .b-stat-icon.blue   { background:var(--primary-light); color:var(--primary); }
+    .b-stat-icon.green  { background:var(--success-light); color:var(--success); }
+    .b-stat-icon.red    { background:var(--danger-light);  color:var(--danger); }
+    .b-stat-icon.yellow { background:var(--warning-light); color:var(--warning); }
+    .b-stat-val   { font-size:1.1rem; font-weight:700; color:var(--text-primary); line-height:1.2; font-family:var(--font-mono); }
+    .b-stat-label { font-size:.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+
+    /* ── Filter chips — ALL <span>, can never submit anything ── */
+    .b-filter-bar {
+        background:var(--surface); border:1px solid var(--border);
+        border-radius:var(--radius-lg); padding:12px 16px;
+        margin-bottom:16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+    .b-filter-label { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap; }
+    .b-filter-chips { display:flex; gap:8px; flex-wrap:wrap; }
+    .b-chip {
+        padding:5px 14px; border-radius:999px; font-size:.775rem; font-weight:600;
+        border:1.5px solid var(--border); background:var(--surface); color:var(--text-secondary);
+        cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:5px;
+        user-select:none;
+    }
+    .b-chip:hover { border-color:var(--primary); color:var(--primary); }
+    .b-chip.active { background:var(--primary); color:white; border-color:var(--primary); }
+    .b-chip.chip-paid.active    { background:var(--success); border-color:var(--success); }
+    .b-chip.chip-pending.active { background:var(--warning); border-color:var(--warning); }
+    .b-chip.chip-overdue.active { background:var(--danger);  border-color:var(--danger); }
+
+    /* ── Results bar ── */
+    .b-results-bar {
+        padding:8px 16px; background:var(--info-light); border:1px solid #bae6fd;
+        border-radius:var(--radius); margin-bottom:12px;
+        font-size:.8125rem; color:var(--info); display:none;
+    }
+
+    /* ── Table ── */
+    .b-table-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow); }
+    .b-table-responsive { overflow-x:auto; }
+    .b-table { width:100%; border-collapse:collapse; margin:0; }
+    .b-table thead tr { background:var(--surface-2); border-bottom:2px solid var(--border); }
+    .b-table thead th { padding:11px 14px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap; border:none; }
+    .b-table tbody tr { border-bottom:1px solid var(--border); transition:background .1s; }
+    .b-table tbody tr:last-child { border-bottom:none; }
+    .b-table tbody tr:hover { background:#fafbff; }
+    .b-table tbody td { padding:11px 14px; font-size:.875rem; color:var(--text-primary); vertical-align:middle; border:none; white-space:nowrap; }
+    .b-table tbody td.wrap { white-space:normal; }
+
+    .b-cell-main { font-weight:600; color:var(--text-primary); line-height:1.3; }
+    .b-cell-sub  { font-size:.75rem; color:var(--text-muted); margin-top:2px; }
+    .b-sno       { font-family:var(--font-mono); font-size:.75rem; color:var(--text-muted); width:42px; }
+
+    .b-amt-total   { font-weight:700; font-size:.95rem; color:var(--primary);  font-family:var(--font-mono); }
+    .b-amt-paid    { font-weight:700; font-size:.95rem; color:var(--success);  font-family:var(--font-mono); }
+    .b-amt-balance { font-weight:700; font-size:.95rem; color:var(--danger);   font-family:var(--font-mono); }
+    .b-amt-balance.settled { color:var(--success); }
+    .b-amt-zero    { font-size:.85rem; color:var(--text-muted); font-family:var(--font-mono); }
+
+    .b-badge {
+        display:inline-flex; align-items:center; gap:5px;
+        padding:4px 10px; border-radius:999px;
+        font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap;
+    }
+    .b-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; flex-shrink:0; }
+    .b-badge-paid    { background:var(--success-light); color:var(--success); }
+    .b-badge-pending { background:var(--warning-light); color:var(--warning); }
+    .b-badge-overdue { background:var(--danger-light);  color:var(--danger); }
+
+    .b-pay-mode {
+        display:inline-flex; align-items:center; gap:5px;
+        padding:3px 10px; background:var(--primary-light); color:var(--primary-dark);
+        border-radius:6px; font-size:.72rem; font-weight:700;
+        text-transform:uppercase; letter-spacing:.03em; white-space:nowrap;
+    }
+    .b-entity-tag { display:inline-flex; align-items:center; gap:4px; font-size:.72rem; color:var(--text-muted); margin-top:3px; }
+    .b-date-wrap  { display:flex; flex-direction:column; gap:1px; }
+    .b-date-main  { font-size:.85rem; color:var(--text-secondary); }
+    .b-date-overdue { font-size:.68rem; font-weight:800; color:var(--danger); text-transform:uppercase; letter-spacing:.05em; }
+    .b-period-wrap { font-size:.8rem; color:var(--text-secondary); }
+    .b-period-sep  { font-size:.68rem; color:var(--text-muted); margin:1px 0; }
+
+    mark.b-hl { background:#fef08a; color:inherit; padding:1px 2px; border-radius:3px; font:inherit; }
+
+    .b-empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
+    .b-empty i  { font-size:2.5rem; opacity:.3; display:block; margin-bottom:12px; }
+    .b-empty h5 { font-size:1rem; font-weight:700; color:var(--text-secondary); margin-bottom:6px; }
+    .b-empty p  { font-size:.875rem; margin:0 0 16px; }
+
+    /* ── Upload modal ── */
+    .b-modal .modal-content { border:1px solid var(--border); border-radius:var(--radius-xl); box-shadow:var(--shadow-lg); font-family:var(--font); }
+    .b-modal .modal-header  { padding:18px 24px; border-bottom:1px solid var(--border); background:var(--surface-2); border-radius:var(--radius-xl) var(--radius-xl) 0 0; }
+    .b-modal .modal-body    { padding:24px; }
+    .b-modal .modal-footer  { padding:16px 24px; border-top:1px solid var(--border); }
+    .b-upload-zone {
+        border:2px dashed var(--border); border-radius:var(--radius-lg);
+        padding:32px 20px; text-align:center; transition:all .2s;
+        cursor:pointer; background:var(--surface-2);
+    }
+    .b-upload-zone:hover, .b-upload-zone.drag-over { border-color:var(--primary); background:var(--primary-light); }
+    .b-upload-zone i { font-size:2.2rem; color:var(--text-muted); margin-bottom:10px; display:block; }
+    .b-upload-zone.has-file i { color:var(--success); }
+    .b-upload-zone p { margin:0; font-size:.875rem; color:var(--text-secondary); }
+    .b-upload-zone strong { color:var(--primary); }
+    .b-upload-name { margin-top:10px; font-size:.8rem; color:var(--success); font-weight:600; display:none; }
+
+    @media (max-width:992px) { .b-stats-row { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:768px) {
+        .b-stats-row { grid-template-columns:repeat(2,1fr); }
+        .b-page-header { flex-direction:column; align-items:stretch; }
+        .b-toolbar { flex-wrap:wrap; }
+        .b-search-wrap { max-width:100%; min-width:0; }
+        .b-table { min-width:1100px; }
+    }
+    @media (max-width:576px) { .b-stats-row { grid-template-columns:1fr 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="billing-page">
+
+<!-- Toasts -->
+<div class="billing-toast-container" id="bToastContainer">
+    {% for message in messages %}
+    <div class="billing-toast {{ message.tags }}">
+        <span class="t-icon">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-times-circle"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>
+            {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+        </span>
+        <span class="t-body">{{ message }}</span>
+        <span class="t-close" onclick="this.closest('.billing-toast').remove()">
+            <i class="fas fa-times"></i>
+        </span>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Page Header -->
+<div class="b-page-header">
+    <h1 class="b-page-title">
+        <span class="b-title-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+        Billing Records
+    </h1>
+    <div class="b-toolbar">
+
+        <!-- Search: plain text input, NOT inside any form -->
+        <div class="b-search-wrap">
+            <i class="fas fa-search b-search-icon"></i>
+            <input type="text" id="bSearch" class="b-search-input"
+                   placeholder="Search customer, invoice…"
+                   autocomplete="off">
+            <span class="b-search-clear" id="bClear" title="Clear">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+
+        {% if role_permissions.billing_invoices_a %}
+        <a href="{% url 'create_billing' %}" class="b-btn b-btn-primary">
+            <i class="fas fa-plus-circle"></i> Create Bill
+        </a>
+        {% endif %}
+
+        <!-- span — NOT a button, cannot submit anything -->
+        <span class="b-btn b-btn-success" id="bExportBtn">
+            <i class="fas fa-file-excel"></i> Export
+        </span>
+
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="b-stats-row">
+    <div class="b-stat-card">
+        <div class="b-stat-icon blue"><i class="fas fa-file-invoice"></i></div>
+        <div><div class="b-stat-val" id="bStatTotal">0</div><div class="b-stat-label">Total Bills</div></div>
+    </div>
+    <div class="b-stat-card">
+        <div class="b-stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div><div class="b-stat-val" id="bStatPaid">0</div><div class="b-stat-label">Paid</div></div>
+    </div>
+    <div class="b-stat-card">
+        <div class="b-stat-icon yellow"><i class="fas fa-clock"></i></div>
+        <div><div class="b-stat-val" id="bStatPending">0</div><div class="b-stat-label">Pending</div></div>
+    </div>
+    <div class="b-stat-card">
+        <div class="b-stat-icon red"><i class="fas fa-exclamation-circle"></i></div>
+        <div><div class="b-stat-val" id="bStatOverdue">0</div><div class="b-stat-label">Overdue</div></div>
+    </div>
+</div>
+
+<!-- Filter chips — ALL <span>, physically impossible to submit a form -->
+<div class="b-filter-bar">
+    <span class="b-filter-label">Filter</span>
+    <div class="b-filter-chips">
+        <span class="b-chip active"        data-filter="all">All</span>
+        <span class="b-chip chip-paid"     data-filter="paid"><i class="fas fa-check-circle"></i> Paid</span>
+        <span class="b-chip chip-pending"  data-filter="pending"><i class="fas fa-clock"></i> Pending</span>
+        <span class="b-chip chip-overdue"  data-filter="overdue"><i class="fas fa-exclamation-circle"></i> Overdue</span>
+    </div>
+</div>
+
+<!-- Results bar -->
+<div class="b-results-bar" id="bResultsBar">
+    <i class="fas fa-filter me-1"></i><span id="bResultsText"></span>
+</div>
+
+<!-- Table -->
+<div class="b-table-card">
+    <div class="b-table-responsive">
+        <table class="b-table" id="bTable">
+            <thead>
+                <tr>
+                    <th class="b-sno">#</th>
+                    <th>Customer / Entity</th>
+                    <th>Billing Period</th>
+                    <th>Total Amount</th>
+                    <th>Paid Amount</th>
+                    <th>Balance Due</th>
+                    <th>Billing Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Payment Date</th>
+                    <th>Payment Mode</th>
+                </tr>
+            </thead>
+            <tbody id="bTableBody">
+                {% if billing_records %}
+                    {% load tz %}
+                    {% now "Y-m-d" as today_str %}
+                    {% for record in billing_records %}
+                    {% with due_str=record.due_date|date:"Y-m-d" %}
+                    <tr data-status="{% if record.paid %}paid{% elif due_str < today_str %}overdue{% else %}pending{% endif %}">
+
+                        <td class="b-sno">
+                            {{ forloop.counter }}
+                            {% if record.invoice_number %}
+                            <div class="b-cell-sub" style="font-family:var(--font-mono);">{{ record.invoice_number }}</div>
+                            {% endif %}
+                        </td>
+
+                        <td class="wrap">
+                            {% if record.customer_location %}
+                                <div class="b-cell-main">{{ record.customer_location.customer.name }}</div>
+                                <div class="b-entity-tag"><i class="fas fa-map-marker-alt"></i>{{ record.customer_location.location_name }}</div>
+                            {% elif record.customer %}
+                                <div class="b-cell-main">{{ record.customer.name }}</div>
+                                <div class="b-entity-tag"><i class="fas fa-user"></i>Direct Customer</div>
+                            {% elif record.company %}
+                                <div class="b-cell-main">{{ record.company.name }}</div>
+                                <div class="b-entity-tag"><i class="fas fa-building"></i>Company</div>
+                            {% else %}
+                                <span style="color:var(--text-muted);">—</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if record.billing_start_date and record.billing_end_date %}
+                            <div class="b-period-wrap">
+                                <div>{{ record.billing_start_date|date:"d M Y" }}</div>
+                                <div class="b-period-sep">to</div>
+                                <div>{{ record.billing_end_date|date:"d M Y" }}</div>
+                            </div>
+                            {% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+                        </td>
+
+                        <td>
+                            <div class="b-amt-total">₹{{ record.amount }}</div>
+                            {% if record.gst_amount %}<div class="b-cell-sub">incl. GST ₹{{ record.gst_amount }}</div>{% endif %}
+                        </td>
+
+                        <td>
+                            {% if record.paid_amount %}
+                                <div class="b-amt-paid">₹{{ record.paid_amount }}</div>
+                            {% else %}
+                                <span class="b-amt-zero">₹0.00</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if record.balance_amount is not None %}
+                                {% if record.balance_amount > 0 %}
+                                    <div class="b-amt-balance">₹{{ record.balance_amount }}</div>
+                                    <div class="b-cell-sub" style="color:var(--danger);">Outstanding</div>
+                                {% else %}
+                                    <div class="b-amt-balance settled">₹0.00</div>
+                                    <div class="b-cell-sub" style="color:var(--success);">Fully Paid</div>
+                                {% endif %}
+                            {% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+                        </td>
+
+                        <td>
+                            <div class="b-date-wrap">
+                                <div class="b-date-main">
+                                    <i class="fas fa-calendar-alt me-1" style="color:var(--text-muted);font-size:11px;"></i>
+                                    {{ record.billing_date|date:"d M Y" }}
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="b-date-wrap">
+                                <div class="b-date-main">
+                                    <i class="fas fa-calendar-check me-1" style="color:var(--text-muted);font-size:11px;"></i>
+                                    {{ record.due_date|date:"d M Y" }}
+                                </div>
+                                {% if not record.paid and due_str < today_str %}
+                                <div class="b-date-overdue">⚠ Overdue</div>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td>
+                            {% if record.paid %}
+                                <span class="b-badge b-badge-paid">Paid</span>
+                            {% elif due_str < today_str %}
+                                <span class="b-badge b-badge-overdue">Overdue</span>
+                            {% else %}
+                                <span class="b-badge b-badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if record.payment_date %}
+                                <div class="b-date-main">{{ record.payment_date|date:"d M Y" }}</div>
+                            {% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+                        </td>
+
+                        <td>
+                            {% if record.payment_mode %}
+                                <span class="b-pay-mode">
+                                    {% if record.payment_mode == 'cash' %}<i class="fas fa-money-bill-wave"></i>
+                                    {% elif record.payment_mode == 'upi' %}<i class="fas fa-mobile-alt"></i>
+                                    {% elif record.payment_mode == 'card' %}<i class="fas fa-credit-card"></i>
+                                    {% elif record.payment_mode == 'netbanking' %}<i class="fas fa-university"></i>
+                                    {% elif record.payment_mode == 'cheque' %}<i class="fas fa-money-check"></i>
+                                    {% else %}<i class="fas fa-coins"></i>{% endif %}
+                                    {{ record.get_payment_mode_display }}
+                                </span>
+                            {% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+                        </td>
+
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                {% else %}
+                    <tr id="bEmptyRow">
+                        <td colspan="11">
+                            <div class="b-empty">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <h5>No Billing Records Yet</h5>
+                                <p>Billing records will appear here once created.</p>
+                                {% if role_permissions.billing_invoices_a %}
+                                <a href="{% url 'create_billing' %}" class="b-btn b-btn-primary">
+                                    <i class="fas fa-plus-circle"></i> Create First Bill
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="b-empty" id="bNoResults" style="display:none;">
+        <i class="fas fa-search"></i>
+        <h5>No results found</h5>
+        <p>Try a different search term or clear the filter.</p>
+    </div>
+</div>
+
+</div><!-- /billing-page -->
+
+
+<!-- Upload Modal -->
+<div class="modal fade b-modal" id="bUploadModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <span style="width:28px;height:28px;background:var(--primary-light);color:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;">
+                        <i class="fas fa-upload"></i>
+                    </span>
+                    Upload Billing Records
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data"
+                  action="{% url 'bulk_upload_billing_records' %}" id="bUploadForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="b-upload-zone" id="bUploadZone"
+                         onclick="document.getElementById('bFileInput').click()">
+                        <i class="fas fa-cloud-upload-alt" id="bUploadIcon"></i>
+                        <p><strong>Click to browse</strong> or drag &amp; drop</p>
+                        <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px;">Supports .xlsx &amp; .xls</p>
+                        <p class="b-upload-name" id="bUploadName"></p>
+                    </div>
+                    <input type="file" id="bFileInput" name="excel_file"
+                           accept=".xlsx,.xls" style="display:none;"
+                           onchange="bHandleFile(this)">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="b-btn b-btn-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="b-btn b-btn-primary">
+                        <i class="fas fa-upload me-1"></i> Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+(function () {
+    'use strict';
+
+    /* ── Wait for DOM ── */
+    document.addEventListener('DOMContentLoaded', function () {
+
+        /* ════════════════════════════════════════════
+           TOASTS — auto dismiss
+        ════════════════════════════════════════════ */
+        document.querySelectorAll('.billing-toast').forEach(function (el) {
+            setTimeout(function () {
+                el.style.transition = 'opacity .4s';
+                el.style.opacity = '0';
+                setTimeout(function () { el.remove(); }, 400);
+            }, 5000);
+        });
+
+        /* ════════════════════════════════════════════
+           ROW SNAPSHOT
+           Capture plain text once — never read again
+           after highlighting mutates the DOM.
+        ════════════════════════════════════════════ */
+        var rows = Array.from(
+            document.querySelectorAll('#bTableBody tr[data-status]')
+        );
+        rows.forEach(function (r) {
+            r._txt = r.textContent.toLowerCase();
+        });
+
+        /* ════════════════════════════════════════════
+           STATS
+        ════════════════════════════════════════════ */
+        var paid = 0, pending = 0, overdue = 0;
+        rows.forEach(function (r) {
+            var s = r.dataset.status;
+            if (s === 'paid') paid++;
+            else if (s === 'pending') pending++;
+            else if (s === 'overdue') overdue++;
+        });
+        document.getElementById('bStatTotal').textContent   = rows.length;
+        document.getElementById('bStatPaid').textContent    = paid;
+        document.getElementById('bStatPending').textContent = pending;
+        document.getElementById('bStatOverdue').textContent = overdue;
+
+        /* ════════════════════════════════════════════
+           STATE
+        ════════════════════════════════════════════ */
+        var activeFilter = 'all';
+        var searchInput  = document.getElementById('bSearch');
+        var clearBtn     = document.getElementById('bClear');
+        var resultsBar   = document.getElementById('bResultsBar');
+        var resultsText  = document.getElementById('bResultsText');
+        var noResults    = document.getElementById('bNoResults');
+
+        /* ════════════════════════════════════════════
+           SEARCH
+           - Input is NOT inside any <form>
+           - No jQuery involved
+           - No event bubbling to #applyFilterBtn
+        ════════════════════════════════════════════ */
+        searchInput.addEventListener('input', function () {
+            clearBtn.style.display = this.value.trim() ? 'inline' : 'none';
+            applyFilters();
+        });
+
+        clearBtn.addEventListener('click', function () {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            removeHighlights();
+            applyFilters();
+            searchInput.focus();
+        });
+
+        /* ════════════════════════════════════════════
+           FILTER CHIPS
+           <span> elements — cannot submit anything
+        ════════════════════════════════════════════ */
+        document.querySelectorAll('.b-chip').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                document.querySelectorAll('.b-chip').forEach(function (c) {
+                    c.classList.remove('active');
+                });
+                this.classList.add('active');
+                activeFilter = this.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        /* ════════════════════════════════════════════
+           CORE FILTER + SEARCH
+        ════════════════════════════════════════════ */
+        function applyFilters() {
+            var q = searchInput.value.toLowerCase().trim();
+            var visible = 0;
+
+            removeHighlights();
+
+            rows.forEach(function (row) {
+                var statusOk = activeFilter === 'all' || row.dataset.status === activeFilter;
+                var searchOk = !q || row._txt.includes(q);
+                var show = statusOk && searchOk;
+
+                row.style.display = show ? '' : 'none';
+                if (show) {
+                    visible++;
+                    if (q) highlightRow(row, q);
+                }
+            });
+
+            if (q || activeFilter !== 'all') {
+                var tag = activeFilter === 'all' ? '' : ' · ' + activeFilter;
+                resultsText.textContent =
+                    visible + ' record' + (visible !== 1 ? 's' : '') + tag +
+                    (q ? ' matching "' + q + '"' : '');
+                resultsBar.style.display = 'block';
+                noResults.style.display  = visible === 0 ? 'block' : 'none';
+            } else {
+                resultsBar.style.display = 'none';
+                noResults.style.display  = 'none';
+            }
+        }
+
+        /* ════════════════════════════════════════════
+           HIGHLIGHT — text-node level only
+        ════════════════════════════════════════════ */
+        var HL_SEL = [
+            '.b-cell-main', '.b-cell-sub', '.b-amt-total',
+            '.b-amt-paid', '.b-amt-balance', '.b-date-main',
+            '.b-period-wrap > div', '.b-pay-mode', '.b-sno'
+        ];
+
+        function highlightRow(row, term) {
+            HL_SEL.forEach(function (sel) {
+                row.querySelectorAll(sel).forEach(function (el) {
+                    Array.from(el.childNodes)
+                        .filter(function (n) {
+                            return n.nodeType === Node.TEXT_NODE && n.nodeValue.trim();
+                        })
+                        .forEach(function (n) {
+                            var txt = n.nodeValue;
+                            var idx = txt.toLowerCase().indexOf(term);
+                            if (idx === -1) return;
+                            var mark = document.createElement('mark');
+                            mark.className   = 'b-hl';
+                            mark.textContent = txt.slice(idx, idx + term.length);
+                            var frag = document.createDocumentFragment();
+                            frag.appendChild(document.createTextNode(txt.slice(0, idx)));
+                            frag.appendChild(mark);
+                            frag.appendChild(document.createTextNode(txt.slice(idx + term.length)));
+                            n.parentNode.replaceChild(frag, n);
+                        });
+                });
+            });
+        }
+
+        function removeHighlights() {
+            document.querySelectorAll('#bTableBody mark.b-hl').forEach(function (m) {
+                m.replaceWith(document.createTextNode(m.textContent));
+            });
+            rows.forEach(function (r) { r.normalize(); });
+        }
+
+        /* ════════════════════════════════════════════
+           EXPORT — span click, iframe trigger
+        ════════════════════════════════════════════ */
+        var exportBtn = document.getElementById('bExportBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function () {
+                var orig = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting…';
+                this.style.pointerEvents = 'none';
+                var self = this;
+                var iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = '/export/invoices/';
+                document.body.appendChild(iframe);
+                setTimeout(function () {
+                    self.innerHTML = orig;
+                    self.style.pointerEvents = '';
+                    document.body.removeChild(iframe);
+                }, 2000);
+            });
+        }
+
+        /* ════════════════════════════════════════════
+           UPLOAD drag & drop
+        ════════════════════════════════════════════ */
+        var uploadZone = document.getElementById('bUploadZone');
+        var fileInput  = document.getElementById('bFileInput');
+        if (uploadZone && fileInput) {
+            uploadZone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+            uploadZone.addEventListener('dragleave', function () {
+                uploadZone.classList.remove('drag-over');
+            });
+            uploadZone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                if (e.dataTransfer.files[0]) {
+                    fileInput.files = e.dataTransfer.files;
+                    bHandleFile(fileInput);
+                }
+            });
+        }
+
+    }); /* end DOMContentLoaded */
+
+    /* ════════════════════════════════════════════
+       FILE HANDLER (called from onchange attr)
+    ════════════════════════════════════════════ */
+    window.bHandleFile = function (input) {
+        if (!input.files || !input.files[0]) return;
+        var f    = input.files[0];
+        var zone = document.getElementById('bUploadZone');
+        var name = document.getElementById('bUploadName');
+        var icon = document.getElementById('bUploadIcon');
+        zone.classList.add('has-file');
+        icon.className     = 'fas fa-check-circle';
+        icon.style.color   = 'var(--success)';
+        name.textContent   = '✓ ' + f.name;
+        name.style.display = 'block';
+    };
+
+}());
+</script>
+{% endblock %}

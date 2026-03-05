@@ -1,0 +1,792 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}King Gate Dashboard{% endblock %}
+{% block styles %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e429f;
+        --primary-light: #e8f0fe;
+        --success: #057a55;
+        --success-light: #def7ec;
+        --warning: #c27803;
+        --warning-light: #fdf6b2;
+        --danger: #c81e1e;
+        --danger-light: #fde8e8;
+        --info: #0369a1;
+        --info-light: #e0f2fe;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --surface-3: #f1f5f9;
+        --border: #e2e8f0;
+        --border-strong: #cbd5e1;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+        --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05);
+        --radius: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --font: 'DM Sans', sans-serif;
+        --font-mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: var(--font);
+        background: var(--surface-2);
+        color: var(--text-primary);
+        margin: 0; padding: 0;
+    }
+
+    .page-wrapper { padding: 24px; }
+
+    /* ── Toast ──────────────────────────────────────── */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 340px;
+    }
+
+    .toast-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        animation: slideDown 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-card.success { background: #f0fdf4; border-color: #86efac; }
+    .toast-card.error   { background: #fef2f2; border-color: #fca5a5; }
+    .toast-card.warning { background: #fffbeb; border-color: #fcd34d; }
+    .toast-card.info    { background: #eff6ff; border-color: #93c5fd; }
+
+    .toast-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+    .toast-card.success .toast-icon { color: #16a34a; }
+    .toast-card.error   .toast-icon { color: #dc2626; }
+    .toast-card.warning .toast-icon { color: #d97706; }
+    .toast-card.info    .toast-icon { color: #2563eb; }
+
+    .toast-body { flex: 1; font-size: 0.875rem; line-height: 1.5; }
+    .toast-close {
+        background: none; border: none; cursor: pointer;
+        color: var(--text-muted); padding: 0; font-size: 16px;
+    }
+    .toast-close:hover { color: var(--text-secondary); }
+
+    /* ── Stats Grid ─────────────────────────────────── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .stats-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 14px 12px;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-align: center;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        position: relative;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .stats-icon {
+        width: 32px; height: 32px;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        margin: 0 auto 8px;
+    }
+
+    .stats-number {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+        margin: 3px 0;
+        line-height: 1.2;
+    }
+
+    .stats-label {
+        color: var(--text-muted);
+        font-size: 0.69rem;
+        font-weight: 600;
+        line-height: 1.3;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .download-icon {
+        position: absolute;
+        top: 8px; right: 8px;
+        font-size: 10px;
+        color: var(--text-muted);
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .stats-card:hover .download-icon { opacity: 1; }
+
+    /* ── Chart Card ─────────────────────────────────── */
+    .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        height: 100%;
+    }
+
+    .chart-header {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .chart-header .header-icon {
+        width: 26px; height: 26px;
+        border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 200px;
+        width: 100%;
+    }
+
+    /* ── Invoice Summary ────────────────────────────── */
+    .invoice-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: var(--radius);
+        margin-bottom: 8px;
+        border-left: 3px solid transparent;
+    }
+
+    .invoice-item:last-child { margin-bottom: 0; }
+
+    .invoice-item-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    .invoice-count {
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: var(--font-mono);
+    }
+
+    .invoice-paid    { background: var(--success-light); border-left-color: #10b981; }
+    .invoice-unpaid  { background: var(--danger-light);  border-left-color: #ef4444; }
+    .invoice-pending { background: var(--warning-light); border-left-color: #f59e0b; }
+    .invoice-overdue { background: #fef2f2;              border-left-color: #dc2626; }
+
+    /* ── List rows (customers, alerts, transactions) ── */
+    .list-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .list-row:last-child { border-bottom: none; }
+
+    .list-row-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .avatar {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700;
+        font-size: 12px;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .list-row-info h6 {
+        margin: 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px;
+    }
+
+    .list-row-info small {
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        display: block;
+        margin-top: 1px;
+    }
+
+    .list-row-amount {
+        font-weight: 700;
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding-left: 8px;
+    }
+
+    .amount-danger  { color: var(--danger); }
+    .amount-success { color: var(--success); }
+    .amount-default { color: var(--text-primary); }
+
+    .transaction-icon {
+        width: 34px; height: 34px;
+        border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 28px 20px;
+        color: var(--text-muted);
+        font-size: 0.8125rem;
+    }
+    .empty-state i { font-size: 1.75rem; opacity: 0.25; display: block; margin-bottom: 8px; }
+
+    @media (max-width: 768px) {
+        .page-wrapper { padding: 16px; }
+        .stats-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+        .stats-number { font-size: 0.95rem; }
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+
+<!-- ── Toasts ─────────────────────────────────────────────────── -->
+<div class="toast-container" id="toastContainer">
+    {% for message in messages %}
+    <div class="toast-card {{ message.tags }}">
+        <div class="toast-icon">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-times-circle"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>
+            {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+        </div>
+        <div class="toast-body">{{ message }}</div>
+        <button class="toast-close" onclick="this.closest('.toast-card').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+    <!-- ── Stats Grid ──────────────────────────────────────────── -->
+    <div class="stats-grid">
+
+        <a href="{% url 'company_management' %}" class="stats-card">
+            <span class="stats-icon" style="background:#dbeafe; color:#3b82f6;">
+                <i class="fas fa-building"></i>
+            </span>
+            <div class="stats-label">Companies</div>
+            <div class="stats-number">{{ companies }}</div>
+        </a>
+
+        <a href="{% url 'customer_management' %}" class="stats-card">
+            <span class="stats-icon" style="background:var(--success-light); color:var(--success);">
+                <i class="fas fa-users"></i>
+            </span>
+            <div class="stats-label">Total Customers</div>
+            <div class="stats-number">{{ customers }}</div>
+        </a>
+
+        <a href="{% url 'active_customers_list' %}" class="stats-card">
+            <span class="stats-icon" style="background:#fed7aa; color:#f97316;">
+                <i class="fas fa-user-check"></i>
+            </span>
+            <div class="stats-label">Active Customers</div>
+            <div class="stats-number">{{ active_customers }}</div>
+        </a>
+
+        <a href="{% url 'inactive_customers_list' %}" class="stats-card">
+            <span class="stats-icon" style="background:#fce7f3; color:#ec4899;">
+                <i class="fas fa-user-times"></i>
+            </span>
+            <div class="stats-label">Inactive Customers</div>
+            <div class="stats-number">{{ inacive_customers }}</div>
+        </a>
+
+        <a href="{% url 'billing_management' %}" class="stats-card">
+            <span class="stats-icon" style="background:#e0e7ff; color:#6366f1;">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </span>
+            <div class="stats-label">Total Invoice</div>
+            <div class="stats-number">{{ bills }}</div>
+        </a>
+
+        <a href="{% url 'export_total_amount' %}" class="stats-card">
+            <i class="fas fa-download download-icon"></i>
+            <span class="stats-icon" style="background:var(--danger-light); color:var(--danger);">
+                <i class="fas fa-hand-holding-usd"></i>
+            </span>
+            <div class="stats-label">Total Amount</div>
+            <div class="stats-number">₹{{ bill_total|floatformat:0 }}</div>
+        </a>
+
+        <a href="{% url 'export_collected' %}" class="stats-card">
+            <i class="fas fa-download download-icon"></i>
+            <span class="stats-icon" style="background:#e0f7fa; color:#00bcd4;">
+                <i class="fas fa-wallet"></i>
+            </span>
+            <div class="stats-label">Total Collected</div>
+            <div class="stats-number">₹{{ total_collected|floatformat:0 }}</div>
+        </a>
+
+        <a href="{% url 'export_outstanding' %}" class="stats-card">
+            <i class="fas fa-download download-icon"></i>
+            <span class="stats-icon" style="background:var(--warning-light); color:var(--warning);">
+                <i class="fas fa-exclamation-circle"></i>
+            </span>
+            <div class="stats-label">Total Outstanding</div>
+            <div class="stats-number">₹{{ total_outstanding|floatformat:0 }}</div>
+        </a>
+
+        <div class="stats-card" style="cursor:default;">
+            <span class="stats-icon" style="background:#ddd6fe; color:#8b5cf6;">
+                <i class="fas fa-piggy-bank"></i>
+            </span>
+            <div class="stats-label">Advance Received</div>
+            <div class="stats-number">₹{{ total_advance|floatformat:0|default:"0" }}</div>
+        </div>
+
+    </div>
+
+    <!-- ── Charts Row 1 ────────────────────────────────────────── -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-8 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:#e8f0fe; color:var(--primary);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    Revenue vs Collection Trends
+                </div>
+                <div class="chart-container" style="height:220px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:var(--success-light); color:var(--success);">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    Payment Status
+                </div>
+                <div class="chart-container">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Charts Row 2 ────────────────────────────────────────── -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-6 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:#fed7aa; color:#f97316;">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    Revenue by Company
+                </div>
+                <div class="chart-container">
+                    <canvas id="companyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:#ddd6fe; color:#8b5cf6;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    Payment Methods
+                </div>
+                <div class="chart-container">
+                    <canvas id="paymentMethodChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Invoice / Top Customers / Pending ──────────────────── -->
+    <div class="row g-3 mb-3">
+
+        <!-- Invoice Summary -->
+        <div class="col-lg-4 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:var(--primary-light); color:var(--primary);">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    Invoice Summary
+                </div>
+
+                <div class="invoice-item invoice-paid">
+                    <div class="invoice-item-left">
+                        <i class="fas fa-check-circle" style="color:#10b981;"></i> Paid
+                    </div>
+                    <span class="invoice-count" style="color:#10b981;">{{ paid_count }}</span>
+                </div>
+                <div class="invoice-item invoice-unpaid">
+                    <div class="invoice-item-left">
+                        <i class="fas fa-times-circle" style="color:#ef4444;"></i> Unpaid
+                    </div>
+                    <span class="invoice-count" style="color:#ef4444;">{{ unpaid_count }}</span>
+                </div>
+                <div class="invoice-item invoice-pending">
+                    <div class="invoice-item-left">
+                        <i class="fas fa-clock" style="color:#f59e0b;"></i> Pending
+                    </div>
+                    <span class="invoice-count" style="color:#f59e0b;">{{ pending_count }}</span>
+                </div>
+                <div class="invoice-item invoice-overdue">
+                    <div class="invoice-item-left">
+                        <i class="fas fa-exclamation-circle" style="color:#dc2626;"></i> Overdue
+                    </div>
+                    <span class="invoice-count" style="color:#dc2626;">{{ overdue_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Customers -->
+        <div class="col-lg-4 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:#fef9c3; color:#ca8a04;">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    Top Customers
+                </div>
+                {% if top_customers %}
+                    {% for customer in top_customers %}
+                    <div class="list-row">
+                        <div class="list-row-left">
+                            <div class="avatar" style="background:{% cycle '#3b82f6' '#10b981' '#f97316' '#8b5cf6' '#ec4899' %};">
+                                {{ customer.initials }}
+                            </div>
+                            <div class="list-row-info">
+                                <h6>{{ customer.name|truncatechars:22 }}</h6>
+                                <small>{{ customer.count }} invoice{{ customer.count|pluralize }}</small>
+                            </div>
+                        </div>
+                        <div class="list-row-amount amount-default">₹{{ customer.total|floatformat:0 }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        No customer data available
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pending Payments -->
+        <div class="col-lg-4 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:var(--warning-light); color:var(--warning);">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    Pending Payments
+                </div>
+                {% if pending_payments %}
+                    {% for payment in pending_payments %}
+                    <div class="list-row">
+                        <div class="list-row-left">
+                            <div class="list-row-info">
+                                <h6>{{ payment.client|truncatechars:22 }}</h6>
+                                <small><i class="fas fa-hashtag" style="font-size:9px;"></i> {{ payment.invoice }} · {{ payment.due_date }}</small>
+                            </div>
+                        </div>
+                        <div class="list-row-amount amount-danger">₹{{ payment.amount|floatformat:0 }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        No pending payments
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Recent Transactions + Monthly Breakdown ─────────────── -->
+    <div class="row g-3">
+
+        <div class="col-lg-6 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:#e0f7fa; color:#0891b2;">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    Recent Transactions
+                </div>
+                {% if recent_transactions %}
+                    {% for trans in recent_transactions %}
+                    <div class="list-row">
+                        <div class="list-row-left">
+                            <div class="transaction-icon" style="background:var(--success-light); color:var(--success);">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <div class="list-row-info">
+                                <h6>{{ trans.client|truncatechars:22 }}</h6>
+                                <small>{{ trans.date }} · {{ trans.mode }}</small>
+                            </div>
+                        </div>
+                        <div class="list-row-amount amount-success">+₹{{ trans.amount|floatformat:0 }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-exchange-alt"></i>
+                        No recent transactions
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="header-icon" style="background:#fce7f3; color:#db2777;">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    Monthly Invoice Breakdown
+                </div>
+                <div class="chart-container" style="height:220px;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div><!-- end page-wrapper -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+
+/* ── Toasts ─────────────────────────────────────── */
+document.querySelectorAll('.toast-card').forEach(el => {
+    setTimeout(() => {
+        el.style.transition = 'opacity 0.4s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+    }, 5000);
+});
+
+/* ── Chart defaults ─────────────────────────────── */
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size   = 11;
+Chart.defaults.color       = '#94a3b8';
+
+const revenueLabels        = {{ revenue_labels|safe }};
+const revenueData          = {{ revenue_data|safe }};
+const collectionData       = {{ collection_data|safe }};
+const companyLabels        = {{ company_labels|safe }};
+const companyData          = {{ company_data|safe }};
+const paymentMethodLabels  = {{ payment_method_labels|safe }};
+const paymentMethodData    = {{ payment_method_data|safe }};
+
+/* Revenue vs Collection */
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels: revenueLabels,
+        datasets: [{
+            label: 'Revenue',
+            data: revenueData,
+            borderColor: '#1a56db',
+            backgroundColor: 'rgba(26,86,219,0.08)',
+            fill: true, tension: 0.4, pointRadius: 3
+        },{
+            label: 'Collected',
+            data: collectionData,
+            borderColor: '#057a55',
+            backgroundColor: 'rgba(5,122,85,0.08)',
+            fill: true, tension: 0.4, pointRadius: 3
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10 } } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: { callback: v => '₹' + (v/1000) + 'K' }
+            },
+            x: { grid: { color: '#f1f5f9' } }
+        }
+    }
+});
+
+/* Payment Status Doughnut */
+new Chart(document.getElementById('paymentChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Paid', 'Unpaid', 'Pending', 'Overdue'],
+        datasets: [{
+            data: [{{ paid_count }}, {{ unpaid_count }}, {{ pending_count }}, {{ overdue_count }}],
+            backgroundColor: ['#057a55', '#ef4444', '#c27803', '#dc2626'],
+            borderWidth: 2, borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '66%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } } }
+    }
+});
+
+/* Revenue by Company */
+new Chart(document.getElementById('companyChart'), {
+    type: 'bar',
+    data: {
+        labels: companyLabels,
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: companyData,
+            backgroundColor: ['#1a56db', '#057a55', '#f97316', '#8b5cf6', '#ec4899'],
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+            x: {
+                grid: { color: '#f1f5f9' },
+                ticks: { callback: v => '₹' + (v/1000) + 'K' }
+            },
+            y: { grid: { display: false } }
+        }
+    }
+});
+
+/* Payment Methods */
+new Chart(document.getElementById('paymentMethodChart'), {
+    type: 'polarArea',
+    data: {
+        labels: paymentMethodLabels,
+        datasets: [{
+            data: paymentMethodData,
+            backgroundColor: [
+                'rgba(26,86,219,0.7)',
+                'rgba(5,122,85,0.7)',
+                'rgba(194,120,3,0.7)',
+                'rgba(139,92,246,0.7)',
+                'rgba(107,114,128,0.7)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } } }
+    }
+});
+
+/* Monthly Breakdown */
+new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ monthly_breakdown|safe }}.map(m => m.month),
+        datasets: [{
+            label: 'Paid',
+            data: {{ monthly_breakdown|safe }}.map(m => m.paid),
+            backgroundColor: '#057a55', borderRadius: 3
+        },{
+            label: 'Unpaid',
+            data: {{ monthly_breakdown|safe }}.map(m => m.unpaid),
+            backgroundColor: '#ef4444', borderRadius: 3
+        },{
+            label: 'Pending',
+            data: {{ monthly_breakdown|safe }}.map(m => m.pending),
+            backgroundColor: '#c27803', borderRadius: 3
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10 } } },
+        scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' } }
+        }
+    }
+});
+
+</script>
+{% endblock content %}

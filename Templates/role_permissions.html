@@ -1,0 +1,306 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}Role Permissions - King Gate{% endblock %}
+{% block styles %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    .rp-page {
+        font-family: 'DM Sans', sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+        padding: 24px;
+        min-height: 100%;
+    }
+    .rp-page .page-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap; gap: 12px;
+        margin-bottom: 20px;
+    }
+    .rp-page .page-title {
+        font-size: 1.375rem; font-weight: 700;
+        color: #0f172a; margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .rp-page .title-icon {
+        width: 36px; height: 36px;
+        background: #1a56db; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 16px; flex-shrink: 0;
+    }
+    .rp-page .role-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #e8f0fe; color: #1e429f;
+        padding: 4px 12px; border-radius: 999px;
+        font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em;
+    }
+    .rp-page .btn-solid {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 14px; border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8125rem; font-weight: 600;
+        border: 1px solid transparent;
+        cursor: pointer; transition: all 0.15s;
+        white-space: nowrap; height: 38px; text-decoration: none;
+    }
+    .rp-page .btn-primary-solid { background: #1a56db; color: white; border-color: #1a56db; }
+    .rp-page .btn-primary-solid:hover {
+        background: #1e429f; color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+    }
+    .rp-page .btn-outline-solid { background: #ffffff; color: #475569; border-color: #e2e8f0; }
+    .rp-page .btn-outline-solid:hover { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+    .rp-page .controls-bar {
+        background: #ffffff; border: 1px solid #e2e8f0;
+        border-radius: 12px 12px 0 0; padding: 14px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0;
+    }
+    .rp-page .select-all-label {
+        display: inline-flex; align-items: center; gap: 10px;
+        font-size: 0.875rem; font-weight: 600; color: #475569;
+        cursor: pointer; user-select: none;
+    }
+    .rp-page .perm-checkbox { width: 17px; height: 17px; accent-color: #1a56db; cursor: pointer; }
+    .rp-page .table-card {
+        background: #ffffff; border: 1px solid #e2e8f0;
+        border-top: none; border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .rp-page .table-responsive { overflow-x: auto; }
+    .rp-page .data-table { width: 100%; border-collapse: collapse; margin: 0; }
+    .rp-page .data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+    .rp-page .data-table thead th {
+        padding: 11px 20px; font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        color: #94a3b8; white-space: nowrap; border: none; text-align: center;
+    }
+    .rp-page .data-table thead th:first-child { text-align: left; width: 260px; }
+    .rp-page .data-table tbody tr { border-bottom: 1px solid #e2e8f0; transition: background 0.1s; }
+    .rp-page .data-table tbody tr:last-child { border-bottom: none; }
+    .rp-page .data-table tbody tr:hover { background: #fafbff; }
+    .rp-page .data-table tbody td {
+        padding: 14px 20px; font-size: 0.875rem;
+        color: #0f172a; vertical-align: middle; border: none; text-align: center;
+    }
+    .rp-page .data-table tbody td:first-child { text-align: left; }
+    .rp-page .menu-name {
+        font-weight: 600; color: #0f172a; font-size: 0.9rem;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .rp-page .menu-icon {
+        width: 28px; height: 28px; border-radius: 6px;
+        background: #e8f0fe; color: #1a56db;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 12px; flex-shrink: 0;
+    }
+    .rp-page .perm-cell { text-align: center; }
+    .rp-page .dash {
+        display: inline-block; width: 16px; height: 2px;
+        background: #cbd5e1; border-radius: 2px; vertical-align: middle;
+    }
+    @media (max-width: 768px) {
+        .rp-page { padding: 16px; }
+        .rp-page .page-header { flex-direction: column; align-items: stretch; }
+        .rp-page .data-table { min-width: 540px; }
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="rp-page">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <span class="title-icon"><i class="fas fa-key"></i></span>
+            Role Permissions
+            <span class="role-badge">
+                <i class="fas fa-shield-alt" style="font-size:10px;"></i>
+                {{ role.role_name }}
+            </span>
+        </h1>
+        <a href="{% url 'role_list' %}" class="btn-solid btn-outline-solid">
+            <i class="fas fa-arrow-left"></i> Back to Roles
+        </a>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="controls-bar">
+            <label class="select-all-label" for="select-all">
+                <input type="checkbox" id="select-all" class="perm-checkbox">
+                Select / Deselect All Permissions
+            </label>
+            <button type="submit" class="btn-solid btn-primary-solid">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Menu / Module</th>
+                            <th><i class="fas fa-eye me-1"></i> View</th>
+                            <th><i class="fas fa-plus me-1"></i> Add</th>
+                            <th><i class="fas fa-edit me-1"></i> Edit</th>
+                            <th><i class="fas fa-trash me-1"></i> Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody id="form-data-table">
+
+                        <!-- Dashboard: V only -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-tachometer-alt"></i></span>Dashboard</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="dashboard_v" {% if permissions.dashboard_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                        </tr>
+
+                        <!-- Customer Management: V A E D -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-users"></i></span>Customer Management</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="customer_management_v" {% if permissions.customer_management_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="customer_management_a" {% if permissions.customer_management_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="customer_management_e" {% if permissions.customer_management_e %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="customer_management_d" {% if permissions.customer_management_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <!-- Company Master: V A E D -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-building"></i></span>Company Master</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="company_master_v" {% if permissions.company_master_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="company_master_a" {% if permissions.company_master_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="company_master_e" {% if permissions.company_master_e %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="company_master_d" {% if permissions.company_master_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <!-- Subscription Master: V A E D -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-crown"></i></span>Subscription Master</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="subscription_master_v" {% if permissions.subscription_master_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="subscription_master_a" {% if permissions.subscription_master_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="subscription_master_e" {% if permissions.subscription_master_e %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="subscription_master_d" {% if permissions.subscription_master_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <!-- Billings & Invoices: V A E D -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-file-invoice"></i></span>Billings &amp; Invoices</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="billing_invoices_v" {% if permissions.billing_invoices_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="billing_invoices_a" {% if permissions.billing_invoices_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="billing_invoices_e" {% if permissions.billing_invoices_e %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="billing_invoices_d" {% if permissions.billing_invoices_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <!-- Payment Approval: V A E D (all 4) -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-check-circle"></i></span>Payment Approval</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="payment_approval_v" {% if permissions.payment_approval_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="payment_approval_a" {% if permissions.payment_approval_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="payment_approval_e" {% if permissions.payment_approval_e %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="payment_approval_d" {% if permissions.payment_approval_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <!-- Roles: V A E D -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-shield-alt"></i></span>Roles</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="roles_v" {% if permissions.roles_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="roles_a" {% if permissions.roles_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="roles_e" {% if permissions.roles_e %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="roles_d" {% if permissions.roles_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <!-- Users: V A E D -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-user-cog"></i></span>Users</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="users_v" {% if permissions.users_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="users_a" {% if permissions.users_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="users_e" {% if permissions.users_e %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="users_d" {% if permissions.users_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <!-- Manual Receipts: V A only — E and D are dash -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-receipt"></i></span>Manual Receipts</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="manual_receipts_v" {% if permissions.manual_receipts_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="manual_receipts_a" {% if permissions.manual_receipts_a %}checked{% endif %}></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                        </tr>
+
+                        <!-- Reports & Analytics: V only -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-chart-bar"></i></span>Reports &amp; Analytics</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="reports_v" {% if permissions.reports_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                        </tr>
+
+                        <!-- Ledger: V only -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-book"></i></span>Ledger</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="data_logs_v" {% if permissions.data_logs_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                        </tr>
+
+                        <!-- User Logs: V only -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-history"></i></span>User Logs</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="user_logs_v" {% if permissions.user_logs_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                        </tr>
+
+                        <!-- Settings: V only -->
+                        <tr>
+                            <td><div class="menu-name"><span class="menu-icon"><i class="fas fa-cog"></i></span>Settings</div></td>
+                            <td class="perm-cell"><input type="checkbox" class="perm-checkbox" name="settings_v" {% if permissions.settings_v %}checked{% endif %}></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                            <td class="perm-cell"><span class="dash"></span></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('select-all').addEventListener('change', function () {
+        document.querySelectorAll('#form-data-table .perm-checkbox').forEach(cb => {
+            cb.checked = this.checked;
+        });
+    });
+
+    document.querySelectorAll('#form-data-table .perm-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const all     = document.querySelectorAll('#form-data-table .perm-checkbox');
+            const checked = document.querySelectorAll('#form-data-table .perm-checkbox:checked');
+            const selectAll = document.getElementById('select-all');
+            selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+            selectAll.checked = checked.length === all.length;
+        });
+    });
+</script>
+
+{% endblock content %}

@@ -1,0 +1,718 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}Create Bill - King Gate{% endblock %}
+{% block styles %}
+    {{ block.super }}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    <style>
+        body { background: #f5f7fb; }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+
+        label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 10px 12px;
+            border-color: #e0e3e7;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #4c6ef5;
+            box-shadow: 0 0 0 .15rem rgba(76,110,245,.15);
+        }
+
+        .select2-container--bootstrap-5 .select2-selection {
+            border-radius: 8px;
+            border-color: #e0e3e7;
+            min-height: 42px;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            line-height: 42px;
+            padding-left: 12px;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+            height: 42px;
+        }
+
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+        .select2-container--bootstrap-5.select2-container--open .select2-selection {
+            border-color: #4c6ef5;
+            box-shadow: 0 0 0 .15rem rgba(76,110,245,.15);
+        }
+
+        .select2-dropdown {
+            border-radius: 8px;
+            border-color: #e0e3e7;
+        }
+
+        .select2-search--dropdown .select2-search__field {
+            border-radius: 6px;
+            border-color: #e0e3e7;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #4c6ef5 !important;
+        }
+
+        input[type="radio"] {
+            accent-color: #4c6ef5;
+            margin-right: 6px;
+        }
+
+        #subscription {
+            background: #f8f9fa;
+            font-weight: 500;
+        }
+
+        .location-info {
+            background: #e7f5ff;
+            border: 1px solid #4c6ef5;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .gst-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .no-gst-info {
+            background: #f8f9fa;
+            border: 1px solid #adb5bd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .table { margin-top: 10px; }
+
+        .table thead th {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #6c757d;
+            border-bottom: 1px solid #dee2e6;
+            padding: 10px;
+        }
+
+        .table tbody td { padding: 10px; }
+        .table tbody tr { transition: background .15s ease; }
+        .table tbody tr:hover { background: #f8f9fa; }
+
+        .btn-secondary { border-radius: 18px; padding: 6px 16px; }
+
+        .btn-danger {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            padding: 0;
+        }
+
+        .btn-success {
+            border-radius: 22px;
+            padding: 10px 28px;
+            font-weight: 600;
+        }
+
+        .totals-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #4c6ef5;
+        }
+
+        .total-row {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #4c6ef5;
+        }
+
+        .fade-row {
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        textarea { border-radius: 10px; }
+
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .invoice-badge {
+            background: linear-gradient(135deg, #4c6ef5 0%, #3b5bdb 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 4px 12px rgba(76,110,245,0.25);
+            margin-bottom: 20px;
+        }
+
+        .invoice-badge .inv-icon { font-size: 28px; opacity: 0.9; }
+        .invoice-badge .inv-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 2px; }
+        .invoice-badge .inv-number { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+        .invoice-badge .inv-note { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+        @media (max-width: 768px) {
+            .card { padding: 1rem !important; }
+            .invoice-badge .inv-number { font-size: 17px; }
+        }
+    </style>
+{% endblock styles %}
+
+{% block content %}
+<div class="container-fluid">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" id="billingForm">
+    {% csrf_token %}
+
+    <div class="card p-4">
+
+        <!-- ── Page Header + Invoice Number Badge ───────────────────────── -->
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+            <h4 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Create New Bill</h4>
+            <div class="invoice-badge">
+                <div class="inv-icon"><i class="fas fa-hashtag"></i></div>
+                <div>
+                    <div class="inv-label">Invoice Number</div>
+                    <div class="inv-number">{{ next_invoice_number }}</div>
+                    <div class="inv-note">Auto-assigned on save</div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="client_type" value="customer">
+
+        <!-- ── Customer Selection ────────────────────────────────────────── -->
+        <div class="row" id="customerBox">
+            <div class="col-md-6 mb-3">
+                <label>Customer *</label>
+                <select class="form-control select2-customer" id="customer" name="customer" required>
+                    <option value="">Select Customer</option>
+                    {% for c in customers %}
+                    <option value="{{ c.id }}"
+                            data-sub="{% if c.subscription_plan %}{{ c.subscription_plan.name }}{% endif %}"
+                            data-state="{{ c.state.id|default:'' }}"
+                            data-company-state="{{ c.company.state.id|default:'' }}"
+                            data-company-gst-registered="{{ c.company.gst_registered|yesno:'true,false'|default:'false' }}">
+                        {{ c.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>
+                    Customer Location
+                    <small class="text-muted">(Optional)</small>
+                </label>
+                <select class="form-control select2-location" id="customer_location" name="customer_location">
+                    <option value="">No Specific Location (Bill Customer)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ── Billing Entity Info ───────────────────────────────────────── -->
+        <div id="billingEntityInfo" class="location-info d-none">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <div>
+                    <strong>Billing Entity:</strong>
+                    <span id="billingEntityText" class="ms-2"></span>
+                    <span id="billingEntityBadge" class="badge bg-primary ms-2"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── GST Type Info ─────────────────────────────────────────────── -->
+        <div id="gstTypeInfo" class="gst-info d-none">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-receipt text-warning me-2" id="gstIcon"></i>
+                <div>
+                    <strong>GST Type:</strong>
+                    <span id="gstTypeText" class="ms-2"></span>
+                    <span id="gstTypeBadge" class="badge ms-2"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Subscription (Read-only) ──────────────────────────────────── -->
+        <div class="mb-3 mt-3">
+            <label>Subscription Plan</label>
+            <input type="text" class="form-control" id="subscription" readonly
+                   placeholder="Auto-filled based on selection">
+        </div>
+
+        <hr>
+
+        <!-- ── Invoice Details ───────────────────────────────────────────── -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>Billing Date *</label>
+                <input type="date" class="form-control" name="billing_date" id="billing_date" required>
+            </div>
+            <div class="col-md-6">
+                <label>Due Date *</label>
+                <input type="date" class="form-control" name="due_date" id="due_date" required>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- ── Bill Items ────────────────────────────────────────────────── -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Bill Items</h5>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addRow()">
+                <i class="fas fa-plus"></i> Add Item
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Description</th>
+                        <th style="width:100px;">Quantity</th>
+                        <th style="width:130px;">Unit Price (₹)</th>
+                        <th style="width:120px;">Total</th>
+                        <th style="width:50px;">Del</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    <tr class="fade-row">
+                        <td><input name="item_name[]" class="form-control" placeholder="Product / Service" required></td>
+                        <td><input name="description[]" class="form-control" placeholder="Optional"></td>
+                        <td><input name="quantity[]" type="number" class="form-control item-quantity" value="1" step="0.01" min="0.01" required></td>
+                        <td><input name="unit_price[]" type="number" class="form-control item-price" value="0" step="0.01" min="0" placeholder="0.00" required></td>
+                        <td><span class="item-total-display fw-semibold">₹0.00</span></td>
+                        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <hr>
+
+        <!-- ── Totals ────────────────────────────────────────────────────── -->
+        <div class="row mb-3">
+            <div class="col-md-7"></div>
+            <div class="col-md-5">
+                <div class="totals-box">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td><strong>Subtotal:</strong></td>
+                                <td class="text-end" id="subtotalDisplay">₹0.00</td>
+                            </tr>
+                            <tr id="cgstRow" class="d-none">
+                                <td><strong>CGST (9%):</strong></td>
+                                <td class="text-end" id="cgstDisplay">₹0.00</td>
+                            </tr>
+                            <tr id="sgstRow" class="d-none">
+                                <td><strong>SGST (9%):</strong></td>
+                                <td class="text-end" id="sgstDisplay">₹0.00</td>
+                            </tr>
+                            <tr id="igstRow" class="d-none">
+                                <td><strong>IGST (18%):</strong></td>
+                                <td class="text-end" id="igstDisplay">₹0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Tax:</strong></td>
+                                <td class="text-end" id="taxDisplay">₹0.00</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="discount_amount" class="mb-0"><strong>Discount:</strong></label>
+                                </td>
+                                <td class="text-end">
+                                    <input type="number" class="form-control form-control-sm text-end"
+                                           id="discount_amount" name="discount_amount" value="0"
+                                           step="0.01" min="0" placeholder="0.00">
+                                </td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>Total Amount:</strong></td>
+                                <td class="text-end"><strong id="totalDisplay">₹0.00</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Notes ─────────────────────────────────────────────────────── -->
+        <div class="mb-3">
+            <label>Additional Notes</label>
+            <textarea class="form-control" name="notes" rows="3"
+                      placeholder="Enter any additional notes or terms..."></textarea>
+        </div>
+
+        <!-- ── Submit ────────────────────────────────────────────────────── -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted" style="font-size:13px;">
+                <i class="fas fa-info-circle me-1 text-primary"></i>
+                Invoice <strong class="text-primary">{{ next_invoice_number }}</strong> will be created on save.
+            </span>
+            <div>
+                <a href="{% url 'billing_management' %}" class="btn btn-secondary me-2">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-success" id="submitBtn">
+                    <i class="fas fa-save"></i> Save Bill
+                </button>
+            </div>
+        </div>
+
+    </div>
+    </form>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+console.log("🔥 Billing JS Loaded");
+
+// Global variable to track GST type
+let currentGstType = '';
+
+$(document).ready(function () {
+
+    console.log("✅ Document Ready");
+
+    $('#customer').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Search and select customer...',
+        allowClear: true,
+        width: '100%'
+    });
+
+    $('#customer_location').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select location...',
+        allowClear: true,
+        width: '100%'
+    });
+
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    $('#billing_date').val(today);
+
+    attachCalculationListeners(document.querySelector('#itemsBody tr'));
+
+    // ── Customer selected ────────────────────────────────────────────────────
+    $('#customer').on('select2:select', function (e) {
+        console.log("✅ Customer selected");
+
+        const customerId      = e.params.data.id;
+        const customerElement = e.params.data.element;
+
+        const sub              = customerElement.dataset.sub                 || '';
+        const customerStateId  = customerElement.dataset.state               || '';
+        const companyStateId   = customerElement.dataset.companyState        || '';
+
+        // ── FIXED: use company's GST flag, not customer's ────────────────────
+        const companyGstRegistered = customerElement.dataset.companyGstRegistered === 'true';
+
+        $('#subscription').val(sub);
+
+        updateGstType(customerStateId, companyStateId, companyGstRegistered);
+
+        resetLocationSelect();
+        if (customerId) loadLocations(customerId);
+        updateBillingEntityInfo();
+    });
+
+    // ── Customer cleared ─────────────────────────────────────────────────────
+    $('#customer').on('select2:clear', function () {
+        $('#subscription').val('');
+        resetLocationSelect();
+        updateBillingEntityInfo();
+        hideGstInfo();
+        currentGstType = '';
+        calculateTotals();
+    });
+
+    $('#customer_location').on('change', updateBillingEntityInfo);
+
+    $('#discount_amount').on('input', calculateTotals);
+
+    // ── Form submit guard ────────────────────────────────────────────────────
+    $('#billingForm').on('submit', function (e) {
+        const total = parseFloat($('#totalDisplay').text().replace('₹', ''));
+        if (total < 0) {
+            e.preventDefault();
+            alert('Total amount cannot be negative. Please check the discount.');
+            return false;
+        }
+        $('#submitBtn')
+            .prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+    });
+});
+
+
+// ── GST Type Logic ────────────────────────────────────────────────────────────
+// gstRegistered here now refers to the COMPANY's gst_registered flag
+function updateGstType(customerStateId, companyStateId, gstRegistered) {
+    const gstInfo      = $('#gstTypeInfo');
+    const gstTypeText  = $('#gstTypeText');
+    const gstTypeBadge = $('#gstTypeBadge');
+    const gstIcon      = $('#gstIcon');
+
+    // Company NOT GST registered → no GST
+    if (!gstRegistered) {
+        currentGstType = 'NONE';
+
+        gstTypeText.text('Company is not GST registered — No GST will be applied.');
+        gstTypeBadge
+            .text('No GST')
+            .removeClass('bg-success bg-danger bg-warning text-dark')
+            .addClass('bg-secondary');
+
+        gstInfo
+            .removeClass('d-none')
+            .css({ background: '#f8f9fa', borderColor: '#adb5bd' });
+        gstIcon
+            .removeClass('text-warning text-success text-danger')
+            .addClass('text-secondary');
+
+        calculateTotals();
+        return;
+    }
+
+    // GST registered but state info missing
+    if (!customerStateId || !companyStateId) {
+        currentGstType = 'NONE';
+        hideGstInfo();
+        calculateTotals();
+        return;
+    }
+
+    // Restore yellow box for GST cases
+    gstInfo.css({ background: '#fff3cd', borderColor: '#ffc107' });
+    gstIcon.removeClass('text-secondary text-success text-danger').addClass('text-warning');
+
+    if (customerStateId === companyStateId) {
+        currentGstType = 'INTRA';
+        gstTypeText.text('Intra-State (CGST 9% + SGST 9%)');
+        gstTypeBadge
+            .text('Same State')
+            .removeClass('bg-danger bg-secondary bg-warning text-dark')
+            .addClass('bg-success');
+    } else {
+        currentGstType = 'INTER';
+        gstTypeText.text('Inter-State (IGST 18%)');
+        gstTypeBadge
+            .text('Different State')
+            .removeClass('bg-success bg-secondary bg-warning text-dark')
+            .addClass('bg-danger');
+    }
+
+    gstInfo.removeClass('d-none');
+    calculateTotals();
+}
+
+
+function hideGstInfo() {
+    $('#gstTypeInfo').addClass('d-none');
+    $('#cgstRow').addClass('d-none');
+    $('#sgstRow').addClass('d-none');
+    $('#igstRow').addClass('d-none');
+}
+
+
+// ── Location Helpers ──────────────────────────────────────────────────────────
+function resetLocationSelect() {
+    const locationSelect = $('#customer_location');
+    locationSelect.html('<option value="">No Specific Location (Bill Customer)</option>');
+    locationSelect.val(null).trigger('change');
+}
+
+
+function loadLocations(customerId) {
+    console.log("🚀 Loading locations:", customerId);
+
+    const locationSelect = $('#customer_location');
+    locationSelect.prop('disabled', true);
+
+    $.ajax({
+        url: `/billing/api/get-locations/?customer_id=${customerId}`,
+        method: 'GET',
+        success: function (data) {
+            console.log("✅ Location API:", data);
+
+            locationSelect.html('<option value="">No Specific Location (Bill Customer)</option>');
+
+            if (data.locations) {
+                data.locations.forEach(loc => {
+                    locationSelect.append(
+                        `<option value="${loc.id}">${loc.display_text}</option>`
+                    );
+                });
+            }
+
+            locationSelect.prop('disabled', false).trigger('change');
+        },
+        error: function () {
+            locationSelect.prop('disabled', false);
+            alert("Unable to load locations. Please try again.");
+        }
+    });
+}
+
+
+function updateBillingEntityInfo() {
+    const infoBox     = document.getElementById("billingEntityInfo");
+    const entityText  = document.getElementById("billingEntityText");
+    const entityBadge = document.getElementById("billingEntityBadge");
+
+    const customerName = $('#customer').find(':selected').text();
+    const locationName = $('#customer_location').find(':selected').text();
+
+    if (!customerName || customerName === "Select Customer") {
+        infoBox.classList.add("d-none");
+        return;
+    }
+
+    if ($('#customer_location').val()) {
+        entityText.textContent  = `${customerName} — ${locationName}`;
+        entityBadge.textContent = "Location";
+    } else {
+        entityText.textContent  = customerName;
+        entityBadge.textContent = "Customer";
+    }
+
+    infoBox.classList.remove("d-none");
+}
+
+
+// ── Bill Items ────────────────────────────────────────────────────────────────
+function addRow() {
+    const row = document.createElement('tr');
+    row.className = 'fade-row';
+    row.innerHTML = `
+        <td><input name="item_name[]" class="form-control" placeholder="Product / Service" required></td>
+        <td><input name="description[]" class="form-control" placeholder="Optional"></td>
+        <td><input name="quantity[]" type="number" class="form-control item-quantity" value="1" step="0.01" min="0.01" required></td>
+        <td><input name="unit_price[]" type="number" class="form-control item-price" value="0" step="0.01" min="0" required></td>
+        <td><span class="item-total-display fw-semibold">₹0.00</span></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button></td>
+    `;
+    document.getElementById("itemsBody").appendChild(row);
+    attachCalculationListeners(row);
+}
+
+
+function removeRow(btn) {
+    const tbody = document.getElementById("itemsBody");
+    if (tbody.children.length > 1) {
+        btn.closest("tr").remove();
+        calculateTotals();
+    }
+}
+
+
+function attachCalculationListeners(row) {
+    row.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', function () {
+            calculateRowTotal(row);
+            calculateTotals();
+        });
+    });
+}
+
+
+function calculateRowTotal(row) {
+    const q = parseFloat(row.querySelector('.item-quantity').value) || 0;
+    const p = parseFloat(row.querySelector('.item-price').value)    || 0;
+    row.querySelector('.item-total-display').textContent = `₹${(q * p).toFixed(2)}`;
+}
+
+
+// ── Totals Calculation ────────────────────────────────────────────────────────
+function calculateTotals() {
+    let subtotal = 0;
+
+    document.querySelectorAll('#itemsBody tr').forEach(row => {
+        const q = parseFloat(row.querySelector('.item-quantity')?.value) || 0;
+        const p = parseFloat(row.querySelector('.item-price')?.value)    || 0;
+        subtotal += q * p;
+    });
+
+    let cgst     = 0;
+    let sgst     = 0;
+    let igst     = 0;
+    let totalTax = 0;
+
+    if (currentGstType === 'INTRA') {
+        cgst     = subtotal * 0.09;
+        sgst     = subtotal * 0.09;
+        totalTax = cgst + sgst;
+
+        $('#cgstRow').removeClass('d-none');
+        $('#sgstRow').removeClass('d-none');
+        $('#igstRow').addClass('d-none');
+        $('#cgstDisplay').text(`₹${cgst.toFixed(2)}`);
+        $('#sgstDisplay').text(`₹${sgst.toFixed(2)}`);
+
+    } else if (currentGstType === 'INTER') {
+        igst     = subtotal * 0.18;
+        totalTax = igst;
+
+        $('#cgstRow').addClass('d-none');
+        $('#sgstRow').addClass('d-none');
+        $('#igstRow').removeClass('d-none');
+        $('#igstDisplay').text(`₹${igst.toFixed(2)}`);
+
+    } else {
+        $('#cgstRow').addClass('d-none');
+        $('#sgstRow').addClass('d-none');
+        $('#igstRow').addClass('d-none');
+    }
+
+    const discount = parseFloat($('#discount_amount').val()) || 0;
+    const total    = subtotal + totalTax - discount;
+
+    $('#subtotalDisplay').text(`₹${subtotal.toFixed(2)}`);
+    $('#taxDisplay').text(`₹${totalTax.toFixed(2)}`);
+    $('#totalDisplay').text(`₹${total.toFixed(2)}`);
+}
+</script>
+{% endblock scripts %}

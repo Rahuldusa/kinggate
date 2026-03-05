@@ -1,0 +1,781 @@
+{% extends 'sidenavbar.html' %}
+{% load static %}
+{% block title %}Payment Approval{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<style>
+/* ══ TOKENS on :root — modals sit outside .pa-page so they need this ══ */
+:root {
+    --pa-primary:       #1a56db;
+    --pa-primary-dk:    #1e429f;
+    --pa-primary-lt:    #e8f0fe;
+    --pa-success:       #057a55;
+    --pa-success-lt:    #def7ec;
+    --pa-warning:       #c27803;
+    --pa-warning-lt:    #fef9c3;
+    --pa-danger:        #c81e1e;
+    --pa-danger-lt:     #fde8e8;
+    --pa-surface:       #ffffff;
+    --pa-surface2:      #f8fafc;
+    --pa-surface3:      #f1f5f9;
+    --pa-border:        #e2e8f0;
+    --pa-border-dk:     #cbd5e1;
+    --pa-txt:           #0f172a;
+    --pa-txt2:          #475569;
+    --pa-txt-m:         #94a3b8;
+    --pa-shadow:        0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+    --pa-shadow-lg:     0 12px 32px rgba(0,0,0,.12),0 4px 10px rgba(0,0,0,.07);
+    --pa-r:             8px;
+    --pa-r-lg:          12px;
+    --pa-r-xl:          16px;
+    --pa-font:          'DM Sans', sans-serif;
+    --pa-mono:          'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ══ PAGE ═══════════════════════════════════════════════════════ */
+.pa-page {
+    font-family: var(--pa-font);
+    background: var(--pa-surface2);
+    color: var(--pa-txt);
+    padding: 24px;
+    min-height: 100vh;
+}
+
+/* ── Toast ── */
+.pa-toast-container { position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:10px;min-width:340px;pointer-events:none; }
+.pa-toast { display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:var(--pa-r-lg);box-shadow:var(--pa-shadow-lg);animation:paSlide .3s ease;border:1px solid transparent;pointer-events:all; }
+@keyframes paSlide { from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)} }
+.pa-toast.success{background:#f0fdf4;border-color:#86efac}.pa-toast.error{background:#fef2f2;border-color:#fca5a5}.pa-toast.warning{background:#fffbeb;border-color:#fcd34d}.pa-toast.info{background:#eff6ff;border-color:#93c5fd}
+.pa-toast .t-icon{font-size:17px;margin-top:1px;flex-shrink:0}.pa-toast.success .t-icon{color:#16a34a}.pa-toast.error .t-icon{color:#dc2626}.pa-toast.warning .t-icon{color:#d97706}.pa-toast.info .t-icon{color:#2563eb}
+.pa-toast .t-body{flex:1;font-size:.875rem;line-height:1.5}.pa-toast .t-close{background:none;border:none;cursor:pointer;color:var(--pa-txt-m);padding:0;font-size:15px}
+
+/* ── Shared button ── */
+.pa-btn { display:inline-flex;align-items:center;gap:7px;padding:8px 14px;height:38px;border-radius:var(--pa-r);font-family:var(--pa-font);font-size:.8125rem;font-weight:600;border:1px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none; }
+.pa-btn-primary{background:var(--pa-primary);color:#fff;border-color:var(--pa-primary)}.pa-btn-primary:hover{background:var(--pa-primary-dk);color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,86,219,.3)}
+.pa-btn-success{background:var(--pa-success);color:#fff;border-color:var(--pa-success)}.pa-btn-success:hover{background:#046c4e;color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(5,122,85,.3)}.pa-btn-success:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.pa-btn-outline{background:var(--pa-surface);color:var(--pa-txt2);border-color:var(--pa-border)}.pa-btn-outline:hover{background:var(--pa-surface3);color:var(--pa-txt);border-color:var(--pa-border-dk)}
+.pa-btn-excel{background:#f0fdf4;color:#166534;border:1px solid #86efac}.pa-btn-excel:hover{background:#dcfce7;color:#14532d;transform:translateY(-1px)}.pa-btn-excel i{color:#16a34a}
+
+/* ── Filter card ── */
+.pa-page .filter-card{background:var(--pa-surface);border:1px solid var(--pa-border);border-radius:var(--pa-r-lg);padding:18px 20px;margin-bottom:16px;box-shadow:var(--pa-shadow)}
+.pa-page .filter-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--pa-txt-m);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.pa-page .filter-label i{color:var(--pa-primary);font-size:12px}
+.pa-page .filter-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:12px;align-items:end}
+.f-label{font-size:.75rem;font-weight:600;color:var(--pa-txt2);display:block;margin-bottom:5px}
+.f-control,.f-select{width:100%;padding:8px 12px;border:1px solid var(--pa-border);border-radius:var(--pa-r);font-family:var(--pa-font);font-size:.875rem;color:var(--pa-txt);background:var(--pa-surface);height:38px;transition:border-color .15s,box-shadow .15s;appearance:none;outline:none}
+.f-control:focus,.f-select:focus{border-color:var(--pa-primary);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+
+/* Select2 */
+.select2-container--bootstrap-5 .select2-selection{min-height:38px!important;height:38px!important;border-radius:var(--pa-r)!important;border:1px solid var(--pa-border)!important;font-family:var(--pa-font)!important;font-size:.875rem!important}
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered{line-height:36px!important;padding-left:12px!important;font-size:.875rem!important;color:var(--pa-txt)!important}
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder{color:var(--pa-txt-m)!important}
+.select2-container--bootstrap-5 .select2-dropdown{border-radius:var(--pa-r)!important;box-shadow:var(--pa-shadow-lg)!important;border-color:var(--pa-border)!important;font-family:var(--pa-font)!important}
+.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field{border-radius:var(--pa-r)!important;border:1px solid var(--pa-border)!important;font-family:var(--pa-font)!important;font-size:.875rem!important;padding:7px 10px!important;outline:none}
+.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field:focus{border-color:var(--pa-primary)!important;box-shadow:0 0 0 3px rgba(26,86,219,.1)!important}
+.select2-results__option{padding:9px 12px!important;font-size:.875rem!important;font-family:var(--pa-font)!important;cursor:pointer!important}
+.select2-results__option--highlighted{background:var(--pa-primary)!important;color:#fff!important}
+.select2-container{width:100%!important}
+
+/* ── Stats ── */
+.pa-page .stats-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.pa-page .stat-card{background:var(--pa-surface);border:1px solid var(--pa-border);border-radius:var(--pa-r-lg);padding:14px 16px;box-shadow:var(--pa-shadow);display:flex;align-items:center;gap:12px}
+.pa-page .stat-icon{width:36px;height:36px;border-radius:var(--pa-r);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.pa-page .stat-icon.blue{background:var(--pa-primary-lt);color:var(--pa-primary)}.pa-page .stat-icon.yellow{background:var(--pa-warning-lt);color:var(--pa-warning)}.pa-page .stat-icon.green{background:var(--pa-success-lt);color:var(--pa-success)}
+.pa-page .stat-info .stat-val{font-size:1.25rem;font-weight:700;font-family:var(--pa-mono);color:var(--pa-txt);line-height:1}
+.pa-page .stat-info .stat-lbl{font-size:.72rem;color:var(--pa-txt-m);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+
+/* ── Bulk bar ── */
+.pa-page .bulk-bar{background:linear-gradient(135deg,var(--pa-primary-lt),#f0fdf4);border:1px solid #bae6fd;border-radius:var(--pa-r-lg);padding:12px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.pa-page .bulk-bar-left{display:flex;align-items:center;gap:10px;font-size:.875rem;color:var(--pa-txt2)}
+.pa-page .sel-badge{background:var(--pa-primary);color:#fff;font-size:.75rem;font-weight:700;padding:2px 9px;border-radius:999px;min-width:24px;text-align:center}
+
+/* ── Table ── */
+.pa-page .table-card{background:var(--pa-surface);border:1px solid var(--pa-border);border-radius:var(--pa-r-lg);overflow:hidden;box-shadow:var(--pa-shadow)}
+.pa-page .data-table{width:100%;border-collapse:collapse;margin:0}
+.pa-page .data-table thead tr{background:var(--pa-surface2);border-bottom:2px solid var(--pa-border)}
+.pa-page .data-table thead th{padding:11px 14px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--pa-txt-m);white-space:nowrap;border:none}
+.pa-page .data-table thead th.chk-col{width:44px;text-align:center}
+.pa-page .data-table tbody tr{border-bottom:1px solid var(--pa-border);transition:background .1s}
+.pa-page .data-table tbody tr:last-child{border-bottom:none}.pa-page .data-table tbody tr:hover{background:#fafbff}.pa-page .data-table tbody tr.row-sel{background:#eff6ff}
+.pa-page .data-table tbody td{padding:11px 14px;font-size:.875rem;color:var(--pa-txt);vertical-align:middle;border:none;white-space:nowrap}
+.pa-page .cbox{width:16px;height:16px;border:2px solid var(--pa-border-dk);border-radius:4px;cursor:pointer;accent-color:var(--pa-primary)}.pa-page .chk-td{text-align:center}
+.pa-page .c-main{font-weight:600;color:var(--pa-txt);line-height:1.3}.pa-page .c-sub{font-size:.73rem;color:var(--pa-txt-m);margin-top:2px}
+.pa-page .sno{font-family:var(--pa-mono);font-size:.73rem;color:var(--pa-txt-m)}
+.pa-page .amt-cell{font-weight:700;font-size:.95rem;color:var(--pa-primary);font-family:var(--pa-mono);white-space:nowrap}
+.pa-page .badge-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.pa-page .badge-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.pa-page .badge-pending{background:var(--pa-warning-lt);color:var(--pa-warning)}.pa-page .badge-approved{background:var(--pa-success-lt);color:var(--pa-success)}
+.pa-page .pay-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--pa-primary-lt);color:var(--pa-primary-dk);border-radius:6px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.pa-page .mono-pill{font-family:var(--pa-mono);font-size:.77rem;color:var(--pa-txt2);background:var(--pa-surface3);padding:2px 7px;border-radius:4px;display:inline-block;max-width:140px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.pa-page .action-btns{display:flex;gap:5px;flex-wrap:nowrap;align-items:center}
+.pa-page .btn-approve{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--pa-r);font-family:var(--pa-font);font-size:.775rem;font-weight:600;border:1px solid #86efac;background:var(--pa-success-lt);color:var(--pa-success);cursor:pointer;transition:all .15s;white-space:nowrap}
+.pa-page .btn-approve:hover{background:var(--pa-success);color:#fff}
+.pa-page .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--pa-r);font-size:.75rem;cursor:pointer;transition:all .15s;border:1px solid;flex-shrink:0}
+.pa-page .btn-icon-edit{background:#fef9c3;color:#92400e;border-color:#fcd34d}.pa-page .btn-icon-edit:hover{background:#fde68a;color:#78350f;transform:translateY(-1px)}
+.pa-page .btn-icon-del{background:#fef2f2;color:#dc2626;border-color:#fca5a5}.pa-page .btn-icon-del:hover{background:#dc2626;color:#fff;transform:translateY(-1px)}
+.pa-page .empty-state{text-align:center;padding:60px 20px;color:var(--pa-txt-m)}.pa-page .empty-state i{font-size:2.4rem;opacity:.3;display:block;margin-bottom:12px}.pa-page .empty-state h5{font-size:.95rem;font-weight:700;color:var(--pa-txt2);margin-bottom:6px}.pa-page .empty-state p{font-size:.875rem;margin:0}
+.pa-page .prompt-card{background:var(--pa-surface);border:1px solid #bae6fd;border-radius:var(--pa-r-lg);padding:52px 32px;text-align:center;box-shadow:var(--pa-shadow)}
+.pa-page .prompt-icon{width:64px;height:64px;background:var(--pa-primary-lt);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--pa-primary);margin:0 auto 18px}
+.pa-page .prompt-card h5{font-size:1.05rem;font-weight:700;margin-bottom:6px}.pa-page .prompt-card p{font-size:.875rem;color:var(--pa-txt-m);margin:0}
+
+/* ══ PAGE TITLE ══════════════════════════════════════════════════ */
+.pa-page .page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.pa-page .page-title{font-size:1.375rem;font-weight:700;color:var(--pa-txt);margin:0;display:flex;align-items:center;gap:10px}
+.pa-page .title-icon{width:36px;height:36px;background:var(--pa-primary);border-radius:var(--pa-r);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
+.pa-page .pending-badge{font-size:.72rem;font-weight:700;background:var(--pa-warning-lt);color:var(--pa-warning);padding:3px 10px;border-radius:999px;border:1px solid #fde68a}
+
+/* ══ MODALS ══════════════════════════════════════════════════════
+   All modal CSS uses --pa-* variables so no scope issue.
+═══════════════════════════════════════════════════════════════ */
+.pa-modal .modal-content {
+    border: none !important;
+    border-radius: var(--pa-r-xl) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,.18), 0 8px 20px rgba(0,0,0,.10) !important;
+    font-family: var(--pa-font) !important;
+    overflow: hidden;
+}
+
+/* ─ Modal header ─ */
+.pa-modal .modal-header {
+    padding: 0 !important; border: none !important; background: transparent !important;
+}
+.pa-mhd {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px; border-bottom: 1px solid var(--pa-border);
+    background: var(--pa-surface2);
+}
+.pa-mhd-left { display: flex; align-items: center; gap: 12px; }
+.pa-mhd-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+}
+.pa-mhd-icon.green  { background: #d1fae5; color: #065f46; }
+.pa-mhd-icon.yellow { background: #fef3c7; color: #92400e; }
+.pa-mhd-icon.red    { background: #fee2e2; color: #991b1b; }
+.pa-mhd-title { font-size: .9375rem; font-weight: 700; color: var(--pa-txt); line-height: 1.2; }
+.pa-mhd-sub   { font-size: .72rem; color: var(--pa-txt-m); margin-top: 1px; }
+.pa-mhd-close {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--pa-surface3); border: 1px solid var(--pa-border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--pa-txt-m); transition: all .15s; font-size: 12px;
+}
+.pa-mhd-close:hover { background: var(--pa-border-dk); color: var(--pa-txt); }
+
+/* ─ Modal body ─ */
+.pa-modal .modal-body { padding: 22px !important; background: var(--pa-surface) !important; }
+
+/* ─ Modal footer ─ */
+.pa-modal .modal-footer {
+    padding: 14px 22px !important; border-top: 1px solid var(--pa-border) !important;
+    background: var(--pa-surface2) !important;
+    display: flex !important; gap: 8px !important; justify-content: flex-end !important;
+}
+
+/* ─ Confirm table ─ */
+.pa-ctable {
+    border: 1px solid var(--pa-border); border-radius: var(--pa-r-lg);
+    overflow: hidden; margin-top: 14px;
+}
+.pa-crow {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid var(--pa-border); font-size: .875rem;
+}
+.pa-crow:last-child { border-bottom: none; }
+.pa-crow .cl { color: var(--pa-txt-m); font-size: .78rem; font-weight: 500; }
+.pa-crow .cv { font-weight: 600; color: var(--pa-txt); }
+.pa-crow .ca { font-weight: 700; color: var(--pa-primary); font-family: var(--pa-mono); font-size: 1.05rem; }
+
+/* ─ Form fields inside modal ─ */
+.mf-group { margin-bottom: 16px; }
+.mf-group:last-of-type { margin-bottom: 0; }
+.mf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.mf-lbl {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--pa-txt2); margin-bottom: 6px; display: flex; align-items: center; gap: 5px;
+}
+.mf-lbl .req { color: #ef4444; margin-left: 1px; }
+.mf-field {
+    display: block; width: 100%; height: 40px; padding: 0 12px;
+    border: 1.5px solid var(--pa-border); border-radius: var(--pa-r);
+    font-family: var(--pa-font); font-size: .875rem; color: var(--pa-txt);
+    background: var(--pa-surface); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+.mf-field:focus { border-color: var(--pa-primary); box-shadow: 0 0 0 3px rgba(26,86,219,.12); }
+.mf-field.mono  { font-family: var(--pa-mono); font-size: .82rem; }
+.mf-field-wrap  { position: relative; }
+.mf-prefix {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    font-weight: 700; color: var(--pa-txt-m); font-size: .875rem; pointer-events: none;
+    font-family: var(--pa-mono);
+}
+.mf-field.amt {
+    padding-left: 28px; font-family: var(--pa-mono);
+    font-size: 1.05rem; font-weight: 700; color: var(--pa-primary);
+}
+.mf-select {
+    display: block; width: 100%; height: 40px; padding: 0 12px;
+    border: 1.5px solid var(--pa-border); border-radius: var(--pa-r);
+    font-family: var(--pa-font); font-size: .875rem; color: var(--pa-txt);
+    background: var(--pa-surface); outline: none; cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+}
+.mf-select:focus { border-color: var(--pa-primary); box-shadow: 0 0 0 3px rgba(26,86,219,.12); }
+.mf-textarea {
+    display: block; width: 100%; min-height: 72px; padding: 10px 12px;
+    border: 1.5px solid var(--pa-border); border-radius: var(--pa-r);
+    font-family: var(--pa-font); font-size: .875rem; color: var(--pa-txt);
+    background: var(--pa-surface); outline: none; resize: vertical;
+    transition: border-color .15s, box-shadow .15s;
+}
+.mf-textarea:focus { border-color: var(--pa-primary); box-shadow: 0 0 0 3px rgba(26,86,219,.12); }
+
+/* ─ Inline alert inside modal ─ */
+.mf-alert {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 11px 14px; border-radius: var(--pa-r); font-size: .8rem; line-height: 1.5; margin-top: 16px;
+}
+.mf-alert i { flex-shrink: 0; margin-top: 1px; }
+.mf-alert.yellow { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+.mf-alert.red    { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+
+/* ─ Modal footer action buttons ─ */
+.mf-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; height: 40px; border-radius: var(--pa-r);
+    font-family: var(--pa-font); font-size: .8125rem; font-weight: 600;
+    border: 1.5px solid transparent; cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.mf-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.mf-cancel { background: var(--pa-surface); color: var(--pa-txt2); border-color: var(--pa-border); }
+.mf-cancel:hover { background: var(--pa-surface3); color: var(--pa-txt); border-color: var(--pa-border-dk); }
+.mf-save   { background: var(--pa-primary); color: #fff; border-color: var(--pa-primary); }
+.mf-save:hover { background: var(--pa-primary-dk); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,86,219,.3); }
+.mf-approve { background: var(--pa-success); color: #fff; border-color: var(--pa-success); }
+.mf-approve:hover { background: #046c4e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,122,85,.3); }
+.mf-delete { background: #dc2626; color: #fff; border-color: #dc2626; }
+.mf-delete:hover { background: #b91c1c; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,.3); }
+
+/* ── Responsive ── */
+@media(max-width:900px){ .pa-page .filter-grid{grid-template-columns:1fr 1fr 1fr} }
+@media(max-width:640px){
+    .pa-page{padding:14px}
+    .pa-page .filter-grid{grid-template-columns:1fr 1fr}
+    .pa-page .filter-grid>*:nth-child(1){grid-column:span 2}
+    .pa-page .stats-strip{grid-template-columns:repeat(2,1fr)}
+    .pa-page .data-table{min-width:960px}
+    .mf-row{grid-template-columns:1fr}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="pa-toast-container">
+    {% for message in messages %}
+    <div class="pa-toast {{ message.tags }}">
+        <div class="t-icon">{% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>{% elif message.tags == 'error' %}<i class="fas fa-times-circle"></i>{% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>{% else %}<i class="fas fa-info-circle"></i>{% endif %}</div>
+        <div class="t-body">{{ message }}</div>
+        <button class="t-close" onclick="this.closest('.pa-toast').remove()"><i class="fas fa-times"></i></button>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="pa-page">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <span class="title-icon"><i class="fas fa-check-double"></i></span>
+            Payment Approval
+            {% if filtered_count > 0 %}<span class="pending-badge">{{ filtered_count }} pending</span>{% endif %}
+        </h1>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            {% if selected_customer and payment_logs %}
+            <a href="{% url 'export_payment_approvals' %}?customer_id={{ selected_customer }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="pa-btn pa-btn-excel">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="filter-card">
+        <div class="filter-label"><i class="fas fa-filter"></i> Filters</div>
+        <form method="get" id="filterForm">
+            <div class="filter-grid">
+                <div>
+                    <label class="f-label">Customer</label>
+                    <select name="customer_id" id="customerSelect" class="f-select">
+                        <option value="">— Select Customer —</option>
+                        <option value="all" {% if selected_customer == 'all' %}selected{% endif %}>All Customers</option>
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}" {% if selected_customer == customer.id|stringformat:'s' %}selected{% endif %}>{{ customer.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="f-label">Start Date</label>
+                    <input type="date" name="start_date" class="f-control" value="{{ start_date }}" onchange="this.form.submit()">
+                </div>
+                <div>
+                    <label class="f-label">End Date</label>
+                    <input type="date" name="end_date" class="f-control" value="{{ end_date }}" onchange="this.form.submit()">
+                </div>
+                <div>
+                    <label class="f-label" style="visibility:hidden;">Go</label>
+                    <button type="submit" class="pa-btn pa-btn-primary" style="width:100%;justify-content:center;"><i class="fas fa-search"></i> Apply</button>
+                </div>
+                <div>
+                    <label class="f-label" style="visibility:hidden;">Clr</label>
+                    <a href="{% url 'payment_approval_list' %}" class="pa-btn pa-btn-outline" style="width:100%;justify-content:center;"><i class="fas fa-redo"></i> Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if selected_customer %}
+
+    {% if payment_logs %}
+    <div class="stats-strip">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-list"></i></div><div class="stat-info"><div class="stat-val">{{ filtered_count }}</div><div class="stat-lbl">Pending Payments</div></div></div>
+        <div class="stat-card"><div class="stat-icon yellow"><i class="fas fa-rupee-sign"></i></div><div class="stat-info"><div class="stat-val">{{ payment_logs|length }} <span style="font-size:.6rem;font-weight:500;color:var(--pa-txt-m);">records</span></div><div class="stat-lbl">Awaiting Approval</div></div></div>
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-calendar-day"></i></div><div class="stat-info"><div class="stat-val" style="font-size:.9rem;">{% if start_date %}{{ start_date }}{% else %}All time{% endif %}</div><div class="stat-lbl">Date Filter</div></div></div>
+    </div>
+    {% endif %}
+
+    {% if role_permissions.payment_approval_e %}
+    <div class="bulk-bar">
+        <div class="bulk-bar-left"><i class="fas fa-layer-group" style="color:var(--pa-primary);"></i><span>Bulk Actions</span><span class="sel-badge" id="selectedCount">0</span><span style="color:var(--pa-txt-m);font-size:.8rem;">selected</span></div>
+        <button class="pa-btn pa-btn-success" id="bulkApproveBtn" onclick="openBulkModal()" disabled><i class="fas fa-check-double"></i> Approve Selected</button>
+    </div>
+    {% endif %}
+
+    <div class="table-card">
+        <div style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        {% if role_permissions.payment_approval_e %}<th class="chk-col"><input type="checkbox" class="cbox" id="selectAll" onchange="toggleAll()"></th>{% endif %}
+                        <th>#</th><th>Customer</th><th>Location</th><th>Billing Period</th>
+                        <th>Amount</th><th>Payment Date</th><th>Mode</th>
+                        <th>Transaction ID</th><th>Receipt No.</th><th>Status</th>
+                        {% if role_permissions.payment_approval_e %}<th>Actions</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if payment_logs %}
+                    {% for log in payment_logs %}
+                    <tr id="row-{{ log.id }}">
+                        {% if role_permissions.payment_approval_e %}<td class="chk-td"><input type="checkbox" class="cbox row-cb" value="{{ log.id }}" onchange="updateCount()"></td>{% endif %}
+                        <td class="sno">{{ forloop.counter }}</td>
+                        <td><div class="c-main">{{ log.customer.name }}</div></td>
+                        <td>
+                            {% if log.location %}<div class="c-main">{{ log.location.location_name }}</div><div class="c-sub"><i class="fas fa-map-marker-alt"></i> {% if log.location.city %}{{ log.location.city }}{% endif %}</div>
+                            {% else %}<div class="c-main">Main Address</div><div class="c-sub"><i class="fas fa-home"></i> Primary</div>{% endif %}
+                        </td>
+                        <td>
+                            {% if log.billing_period_start and log.billing_period_end %}
+                                <div class="c-main" style="font-size:.82rem;">{{ log.billing_period_start|date:"d M Y" }}</div>
+                                <div class="c-sub">to {{ log.billing_period_end|date:"d M Y" }}</div>
+                            {% else %}<span style="color:var(--pa-txt-m);">—</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="amt-cell">₹{{ log.payment_amount|floatformat:2 }}</div>
+                            {% if log.balance_amount %}<div class="c-sub">Bal: ₹{{ log.balance_amount|floatformat:2 }}</div>{% endif %}
+                        </td>
+                        <td><div style="font-size:.85rem;color:var(--pa-txt2);"><i class="fas fa-calendar-alt" style="color:var(--pa-txt-m);font-size:11px;margin-right:3px;"></i>{{ log.payment_date|date:"d M Y" }}</div></td>
+                        <td>
+                            <span class="pay-chip">
+                                {% if log.payment_mode == 'cash' %}<i class="fas fa-money-bill-wave"></i>{% elif log.payment_mode == 'upi' %}<i class="fas fa-mobile-alt"></i>{% elif log.payment_mode == 'card' %}<i class="fas fa-credit-card"></i>{% elif log.payment_mode == 'netbanking' %}<i class="fas fa-university"></i>{% elif log.payment_mode == 'cheque' %}<i class="fas fa-money-check"></i>{% else %}<i class="fas fa-coins"></i>{% endif %}
+                                {{ log.payment_mode|upper }}
+                            </span>
+                        </td>
+                        <td>{% if log.transaction_id %}<span class="mono-pill" title="{{ log.transaction_id }}">{{ log.transaction_id }}</span>{% else %}<span style="color:var(--pa-txt-m);">—</span>{% endif %}</td>
+                        <td>{% if log.receipt_number %}<span class="mono-pill" title="{{ log.receipt_number }}">{{ log.receipt_number }}</span>{% else %}<span style="color:var(--pa-txt-m);">—</span>{% endif %}</td>
+                        <td><span class="badge-pill badge-pending">Pending</span></td>
+                        {% if role_permissions.payment_approval_e %}
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-approve" onclick="openSingleModal({{ log.id }},'{{ log.customer.name|escapejs }}','{{ log.location.location_name|default:"Main Address"|escapejs }}','{{ log.payment_amount|floatformat:2 }}','{{ log.payment_date|date:"d M Y" }}','{{ log.receipt_number|default:""|escapejs }}','{{ log.transaction_id|default:""|escapejs }}')"><i class="fas fa-check"></i> Approve</button>
+                                 {% if role_permissions.payment_approval_e %} 
+                                <button class="btn-icon btn-icon-edit" title="Edit" onclick="openEditModal({{ log.id }})"><i class="fas fa-pencil-alt"></i></button>
+                                {% endif %}
+                                {% if role_permissions.payment_approval_d %}
+                                <button class="btn-icon btn-icon-del"  title="Delete" onclick="openDeleteModal({{ log.id }},'{{ log.customer.name|escapejs }}','{{ log.payment_amount|floatformat:2 }}',{{ log.is_approved|yesno:'true,false' }})"><i class="fas fa-trash-alt"></i></button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr><td colspan="{% if role_permissions.payment_approval_e %}12{% else %}10{% endif %}">
+                        <div class="empty-state"><i class="fas fa-check-circle"></i><h5>No Pending Payments</h5><p>No payment logs found matching the selected filters.</p></div>
+                    </td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="prompt-card">
+        <div class="prompt-icon"><i class="fas fa-user-check"></i></div>
+        <h5>Select a Customer</h5>
+        <p>Choose a customer (or "All Customers") from the filter above<br>to view pending payment approvals.</p>
+    </div>
+    {% endif %}
+
+</div><!-- end .pa-page -->
+
+
+<!-- ═══ MODAL: Single Approve ═══════════════════════════════════ -->
+<div class="modal fade pa-modal" id="singleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pa-mhd">
+                    <div class="pa-mhd-left">
+                        <div class="pa-mhd-icon green"><i class="fas fa-check"></i></div>
+                        <div><div class="pa-mhd-title">Confirm Approval</div><div class="pa-mhd-sub">Review payment details before approving</div></div>
+                    </div>
+                    <button class="pa-mhd-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.875rem;color:var(--pa-txt2);margin:0 0 2px;">You are about to approve this payment:</p>
+                <div class="pa-ctable">
+                    <div class="pa-crow"><span class="cl">Customer</span><span class="cv" id="m-customer">—</span></div>
+                    <div class="pa-crow"><span class="cl">Location</span><span class="cv" id="m-location">—</span></div>
+                    <div class="pa-crow"><span class="cl">Amount</span><span class="ca" id="m-amount">—</span></div>
+                    <div class="pa-crow"><span class="cl">Payment Date</span><span class="cv" id="m-date">—</span></div>
+                    <div class="pa-crow" id="m-rcpt-row"><span class="cl">Receipt No.</span><span class="cv" id="m-receipt">—</span></div>
+                    <div class="pa-crow" id="m-txn-row"><span class="cl">Transaction ID</span><span class="cv" id="m-txn">—</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="mf-btn mf-cancel" data-bs-dismiss="modal"><i class="fas fa-times"></i> Cancel</button>
+                <button class="mf-btn mf-approve" id="confirmSingleBtn" onclick="executeSingleApprove()"><i class="fas fa-check"></i> Confirm Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══ MODAL: Bulk Approve ══════════════════════════════════════ -->
+<div class="modal fade pa-modal" id="bulkModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pa-mhd">
+                    <div class="pa-mhd-left">
+                        <div class="pa-mhd-icon green"><i class="fas fa-check-double"></i></div>
+                        <div><div class="pa-mhd-title">Confirm Bulk Approval</div><div class="pa-mhd-sub">This action cannot be undone</div></div>
+                    </div>
+                    <button class="pa-mhd-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.875rem;color:var(--pa-txt2);margin:0 0 2px;">Approving <strong id="bulk-count" style="color:var(--pa-primary);">0</strong> payment(s).</p>
+                <div class="pa-ctable" id="bulk-summary" style="max-height:220px;overflow-y:auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="mf-btn mf-cancel" data-bs-dismiss="modal"><i class="fas fa-times"></i> Cancel</button>
+                <button class="mf-btn mf-approve" onclick="executeBulkApprove()"><i class="fas fa-check-double"></i> Approve All</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══ MODAL: Edit Payment Log ══════════════════════════════════ -->
+<div class="modal fade pa-modal" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <div class="pa-mhd">
+                    <div class="pa-mhd-left">
+                        <div class="pa-mhd-icon yellow"><i class="fas fa-pencil-alt"></i></div>
+                        <div><div class="pa-mhd-title">Edit Payment Log</div><div class="pa-mhd-sub">Update the payment details below</div></div>
+                    </div>
+                    <button class="pa-mhd-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="edit-log-id">
+
+                <!-- Amount -->
+                <div class="mf-group">
+                    <div class="mf-lbl"><i class="fas fa-rupee-sign"></i> Payment Amount <span class="req">*</span></div>
+                    <div class="mf-field-wrap">
+                        <span class="mf-prefix">₹</span>
+                        <input type="number" id="edit-amount" class="mf-field amt" step="0.01" min="0.01" placeholder="0.00">
+                    </div>
+                </div>
+
+                <!-- Date + Mode -->
+                <div class="mf-row">
+                    <div>
+                        <div class="mf-lbl"><i class="fas fa-calendar-alt"></i> Payment Date <span class="req">*</span></div>
+                        <input type="date" id="edit-date" class="mf-field">
+                    </div>
+                    <div>
+                        <div class="mf-lbl"><i class="fas fa-credit-card"></i> Payment Mode</div>
+                        <select id="edit-mode" class="mf-select">
+                            <option value="">— Select Mode —</option>
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                            <option value="card">Card</option>
+                            <option value="netbanking">Net Banking</option>
+                            <option value="cheque">Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Txn + Receipt -->
+                <div class="mf-row">
+                    <div>
+                        <div class="mf-lbl"><i class="fas fa-hashtag"></i> Transaction ID</div>
+                        <input type="text" id="edit-txn" class="mf-field mono" placeholder="Optional">
+                    </div>
+                    <div>
+                        <div class="mf-lbl"><i class="fas fa-receipt"></i> Receipt No.</div>
+                        <input type="text" id="edit-receipt" class="mf-field mono" placeholder="Optional">
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="mf-group">
+                    <div class="mf-lbl"><i class="fas fa-sticky-note"></i> Notes</div>
+                    <textarea id="edit-notes" class="mf-textarea" placeholder="Optional notes about this payment…"></textarea>
+                </div>
+
+                <!-- Approved warning -->
+                <div id="edit-approved-warn" class="mf-alert yellow" style="display:none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>This payment is already <strong>approved</strong>. Saving will reverse the old financial effect and re-apply the updated values.</span>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="mf-btn mf-cancel" data-bs-dismiss="modal"><i class="fas fa-times"></i> Cancel</button>
+                <button class="mf-btn mf-save" id="confirmEditBtn" onclick="executeEdit()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══ MODAL: Delete Payment Log ════════════════════════════════ -->
+<div class="modal fade pa-modal" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="pa-mhd">
+                    <div class="pa-mhd-left">
+                        <div class="pa-mhd-icon red"><i class="fas fa-trash-alt"></i></div>
+                        <div><div class="pa-mhd-title">Delete Payment Log</div><div class="pa-mhd-sub">This action is permanent and cannot be undone</div></div>
+                    </div>
+                    <button class="pa-mhd-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.875rem;color:var(--pa-txt2);margin:0 0 2px;">Are you sure you want to permanently delete this payment log?</p>
+                <div class="pa-ctable">
+                    <div class="pa-crow"><span class="cl">Customer</span><span class="cv" id="del-customer">—</span></div>
+                    <div class="pa-crow"><span class="cl">Amount</span><span class="ca" id="del-amount">—</span></div>
+                </div>
+                <div id="del-approved-warn" class="mf-alert red" style="display:none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span><strong>Warning:</strong> This payment is already approved. Deleting will <strong>reverse all financial changes</strong> applied on approval.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="mf-btn mf-cancel" data-bs-dismiss="modal"><i class="fas fa-times"></i> Cancel</button>
+                <button class="mf-btn mf-delete" id="confirmDeleteBtn" onclick="executeDelete()"><i class="fas fa-trash-alt"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+/* ── Toast auto-dismiss ── */
+document.querySelectorAll('.pa-toast').forEach(el => {
+    setTimeout(() => { el.style.transition='opacity .4s'; el.style.opacity='0'; setTimeout(()=>el.remove(),400); }, 5000);
+});
+
+/* ── CSRF ── */
+function getCsrf() { const m=document.cookie.match(/(^|; )csrftoken=([^;]+)/); return m?decodeURIComponent(m[2]):''; }
+
+/* ── Select2 ── */
+$(document).ready(function(){
+    $('#customerSelect').select2({theme:'bootstrap-5',placeholder:'— Select Customer —',allowClear:true,width:'100%'});
+    $(document).on('mousedown','.select2-results__option[aria-selected]',function(e){
+        e.preventDefault();e.stopPropagation();
+        const $s=$('#customerSelect'),d=$(this).data('data');
+        if(d&&d.id!==undefined){$s.val(d.id).trigger('change');$s.select2('close');setTimeout(()=>document.getElementById('filterForm').submit(),50);}
+    });
+});
+
+/* ── Checkbox ── */
+function getSelected(){ return [...document.querySelectorAll('.row-cb:checked')].map(c=>c.value); }
+function updateCount(){
+    const ids=getSelected(),n=ids.length;
+    const b=document.getElementById('selectedCount'),btn=document.getElementById('bulkApproveBtn');
+    if(b)b.textContent=n; if(btn)btn.disabled=n===0;
+    document.querySelectorAll('.row-cb').forEach(cb=>cb.closest('tr').classList.toggle('row-sel',cb.checked));
+    const all=document.querySelectorAll('.row-cb'),chk=document.querySelectorAll('.row-cb:checked'),sa=document.getElementById('selectAll');
+    if(sa){sa.indeterminate=chk.length>0&&chk.length<all.length;sa.checked=all.length>0&&chk.length===all.length;}
+}
+function toggleAll(){ const c=document.getElementById('selectAll').checked; document.querySelectorAll('.row-cb').forEach(cb=>cb.checked=c); updateCount(); }
+
+/* ── Helpers ── */
+function updatePendingBadge(){
+    const n=document.querySelectorAll('.row-cb').length,b=document.querySelector('.pending-badge');
+    if(b){n>0?b.textContent=`${n} pending`:b.remove();}
+}
+function removeRow(id){
+    const row=document.getElementById('row-'+id);
+    if(row){row.style.transition='opacity .4s,transform .4s';row.style.opacity='0';row.style.transform='translateX(12px)';setTimeout(()=>{row.remove();updateCount();updatePendingBadge();},400);}
+}
+function showToast(type,msg){
+    const icons={success:'fa-check-circle',error:'fa-times-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+    const el=document.createElement('div');el.className=`pa-toast ${type}`;
+    el.innerHTML=`<div class="t-icon"><i class="fas ${icons[type]||icons.info}"></i></div><div class="t-body">${msg}</div><button class="t-close" onclick="this.closest('.pa-toast').remove()"><i class="fas fa-times"></i></button>`;
+    document.querySelector('.pa-toast-container').appendChild(el);
+    setTimeout(()=>{el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(()=>el.remove(),400);},5000);
+}
+
+/* ══ SINGLE APPROVE ══ */
+let pendingId=null;
+function openSingleModal(id,customer,location,amount,date,receipt,txn){
+    pendingId=id;
+    document.getElementById('m-customer').textContent=customer;
+    document.getElementById('m-location').textContent=location;
+    document.getElementById('m-amount').textContent='₹'+amount;
+    document.getElementById('m-date').textContent=date;
+    const rr=document.getElementById('m-rcpt-row');
+    receipt?(document.getElementById('m-receipt').textContent=receipt,rr.style.display='flex'):rr.style.display='none';
+    const tr=document.getElementById('m-txn-row');
+    txn?(document.getElementById('m-txn').textContent=txn,tr.style.display='flex'):tr.style.display='none';
+    new bootstrap.Modal(document.getElementById('singleModal')).show();
+}
+function executeSingleApprove(){
+    if(!pendingId)return;
+    const btn=document.getElementById('confirmSingleBtn');
+    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Approving…';btn.disabled=true;
+    fetch(`/payments/${pendingId}/approve/`,{method:'POST',headers:{'X-CSRFToken':getCsrf(),'Content-Type':'application/json'}})
+    .then(r=>r.json()).then(data=>{
+        bootstrap.Modal.getInstance(document.getElementById('singleModal')).hide();
+        data.success?(showToast('success',data.message||'Payment approved.'),removeRow(pendingId)):showToast('error',data.message||'Approval failed.');
+        btn.innerHTML='<i class="fas fa-check"></i> Confirm Approve';btn.disabled=false;pendingId=null;
+    }).catch(()=>{showToast('error','Network error.');btn.innerHTML='<i class="fas fa-check"></i> Confirm Approve';btn.disabled=false;});
+}
+
+/* ══ BULK APPROVE ══ */
+function openBulkModal(){
+    const ids=getSelected();if(!ids.length)return;
+    document.getElementById('bulk-count').textContent=ids.length;
+    document.getElementById('bulk-summary').innerHTML=ids.map(id=>{
+        const row=document.getElementById('row-'+id);
+        return`<div class="pa-crow"><span class="cl">${row?row.querySelector('.c-main')?.textContent?.trim():id}</span><span class="ca">${row?row.querySelector('.amt-cell')?.textContent?.trim():''}</span></div>`;
+    }).join('');
+    new bootstrap.Modal(document.getElementById('bulkModal')).show();
+}
+function executeBulkApprove(){
+    const ids=getSelected();if(!ids.length)return;
+    const fd=new FormData();ids.forEach(id=>fd.append('payment_ids',id));
+    fetch('/payments/bulk-approve/',{method:'POST',headers:{'X-CSRFToken':getCsrf()},body:fd})
+    .then(r=>r.json()).then(data=>{
+        bootstrap.Modal.getInstance(document.getElementById('bulkModal')).hide();
+        data.success?(showToast('success',data.message||`${ids.length} approved.`),ids.forEach(id=>removeRow(id))):showToast('error',data.message||'Bulk approval failed.');
+    }).catch(()=>showToast('error','Network error.'));
+}
+
+/* ══ EDIT ══ */
+let editLogId=null;
+function openEditModal(logId){
+    editLogId=logId;
+    ['edit-amount','edit-date','edit-mode','edit-txn','edit-receipt','edit-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('edit-approved-warn').style.display='none';
+    const btn=document.getElementById('confirmEditBtn');
+    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Loading…';btn.disabled=true;
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+    fetch(`/payments/${logId}/edit-approval/`,{headers:{'X-CSRFToken':getCsrf()}})
+    .then(r=>r.json()).then(data=>{
+        if(!data.success){showToast('error',data.message||'Failed to load.');btn.innerHTML='<i class="fas fa-save"></i> Save Changes';btn.disabled=false;return;}
+        const l=data.log;
+        document.getElementById('edit-amount').value=l.payment_amount;
+        document.getElementById('edit-date').value=l.payment_date;
+        document.getElementById('edit-mode').value=l.payment_mode;
+        document.getElementById('edit-txn').value=l.transaction_id;
+        document.getElementById('edit-receipt').value=l.receipt_number;
+        document.getElementById('edit-notes').value=l.payment_notes;
+        if(l.is_approved)document.getElementById('edit-approved-warn').style.display='flex';
+        btn.innerHTML='<i class="fas fa-save"></i> Save Changes';btn.disabled=false;
+    }).catch(()=>{showToast('error','Network error.');btn.innerHTML='<i class="fas fa-save"></i> Save Changes';btn.disabled=false;});
+}
+function executeEdit(){
+    if(!editLogId)return;
+    const amount=document.getElementById('edit-amount').value.trim();
+    const date=document.getElementById('edit-date').value.trim();
+    if(!amount){showToast('warning','Payment amount is required.');return;}
+    if(!date){showToast('warning','Payment date is required.');return;}
+    const btn=document.getElementById('confirmEditBtn');
+    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving…';btn.disabled=true;
+    fetch(`/payments/${editLogId}/edit-approval/`,{
+        method:'POST',headers:{'X-CSRFToken':getCsrf(),'Content-Type':'application/json'},
+        body:JSON.stringify({payment_amount:amount,payment_date:date,payment_mode:document.getElementById('edit-mode').value,transaction_id:document.getElementById('edit-txn').value,receipt_number:document.getElementById('edit-receipt').value,payment_notes:document.getElementById('edit-notes').value})
+    }).then(r=>r.json()).then(data=>{
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        if(data.success){showToast('success',data.message||'Payment updated.');setTimeout(()=>location.reload(),900);}
+        else{showToast('error',data.message||'Update failed.');btn.innerHTML='<i class="fas fa-save"></i> Save Changes';btn.disabled=false;}
+        editLogId=null;
+    }).catch(()=>{showToast('error','Network error.');btn.innerHTML='<i class="fas fa-save"></i> Save Changes';btn.disabled=false;});
+}
+
+/* ══ DELETE ══ */
+let deleteLogId=null;
+function openDeleteModal(logId,customerName,amount,isApproved){
+    deleteLogId=logId;
+    document.getElementById('del-customer').textContent=customerName;
+    document.getElementById('del-amount').textContent='₹'+amount;
+    document.getElementById('del-approved-warn').style.display=isApproved?'flex':'none';
+    const btn=document.getElementById('confirmDeleteBtn');
+    btn.innerHTML='<i class="fas fa-trash-alt"></i> Delete';btn.disabled=false;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+function executeDelete(){
+    if(!deleteLogId)return;
+    const btn=document.getElementById('confirmDeleteBtn');
+    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Deleting…';btn.disabled=true;
+    fetch(`/payments/${deleteLogId}/delete-approval/`,{method:'POST',headers:{'X-CSRFToken':getCsrf()}})
+    .then(r=>r.json()).then(data=>{
+        bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+        data.success?(showToast('success',data.message||'Payment deleted.'),removeRow(deleteLogId)):showToast('error',data.message||'Delete failed.');
+        btn.innerHTML='<i class="fas fa-trash-alt"></i> Delete';btn.disabled=false;deleteLogId=null;
+    }).catch(()=>{showToast('error','Network error.');btn.innerHTML='<i class="fas fa-trash-alt"></i> Delete';btn.disabled=false;});
+}
+
+updateCount();
+</script>
+
+{% endblock %}

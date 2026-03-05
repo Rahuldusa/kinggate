@@ -1,0 +1,114 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+
+{% block title %}Inactive Customers{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+/* SAME CSS AS ACTIVE CUSTOMERS – NO CHANGE */
+body {
+    background-color: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.main-content-wrapper { padding: 1.5rem; }
+
+.table-container {
+    background: #fff;
+    border-radius: .5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.table thead th {
+    background: #f8f9fa;
+    color: #6c757d;
+    font-size: .813rem;
+    text-transform: uppercase;
+}
+
+.customer-name { font-weight: 600; }
+.customer-email { font-size: .813rem; color: #6c757d; }
+
+.subscription-badge {
+    padding: .25rem .5rem;
+    font-size: .75rem;
+    background: #ffe3e3;
+    color: #c92a2a;
+    border-radius: .25rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid d-flex justify-content-end mt-4">
+    <a class="btn btn-sm btn-primary" href="{% url 'export_inactive_customers' %}">
+        <i class="fas fa-upload me-2"></i> Export Excel
+    </a>
+</div>
+
+<div class="main-content-wrapper">
+
+<h4>Inactive Customers</h4>
+
+<div class="table-container">
+<div class="table-responsive">
+<table class="table table-striped">
+
+<thead>
+<tr>
+    <th>CUSTOMER</th>
+    <th>LOCATION</th>
+    <th>SUBSCRIPTION</th>
+    <th>START DATE</th>
+    <th>GST TYPE</th>
+</tr>
+</thead>
+
+<tbody>
+{% for customer in inactive_customers_list %}
+<tr>
+    <td>
+        <div class="customer-name">{{ customer.name }}</div>
+        <div class="customer-email">
+            <i class="fas fa-envelope me-2"></i>{{ customer.email }}
+        </div>
+    </td>
+
+    <td>{{ customer.state }}</td>
+
+    <td>
+        {% if customer.subscription_plan %}
+            <span class="subscription-badge">
+                {{ customer.subscription_plan.name }}
+            </span>
+        {% else %}
+            <span class="text-muted">No Plan</span>
+        {% endif %}
+    </td>
+
+    <td>{{ customer.start_date }}</td>
+
+    <td>{% if customer.gst_registered %}GST{% else %}Non-GST{% endif %}</td>
+</tr>
+
+{% empty %}
+<tr>
+    <td colspan="5" class="text-center text-muted">
+        No inactive customers found
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+</div>
+</div>
+
+</div>
+
+{% endblock %}

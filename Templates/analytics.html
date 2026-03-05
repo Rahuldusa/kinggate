@@ -1,0 +1,199 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}Billing Records - King Gate{% endblock %}
+{% block styles %}
+    {{ block.super }}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 0.95em;
+        }
+
+        form {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .date-row {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .form-group label {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .form-group input {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+            height: 51px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.4em;
+            }
+
+            form {
+                gap: 10px;
+            }
+
+            .date-row {
+                gap: 10px;
+            }
+            
+            .form-group input {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+                height: 45px;
+            }
+        }
+    </style>
+{% endblock styles %}
+{% block content %}
+    <div class="container">
+        <div class="header">
+            <h1>Subscription Analytics Report</h1>
+            <p>Generate PDF report for selected date range</p>
+        </div>
+
+        <form method="GET" action="{% url 'subscription_analytics_report' %}" target="_blank">
+            <div class="date-row">
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Generate PDF Report
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Set max date to today and default both dates to today
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        
+        // Set default values to today
+        startDateInput.value = formattedDate;
+        endDateInput.value = formattedDate;
+        
+        // Set max date to today
+        endDateInput.max = formattedDate;
+        startDateInput.max = formattedDate;
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (!startDateInput.value || !endDateInput.value) {
+                e.preventDefault();
+                alert('Please select both start and end dates before submitting.');
+                return false;
+            }
+            
+            if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
+                e.preventDefault();
+                alert('Start date cannot be after end date.');
+                return false;
+            }
+        });
+    </script>
+{% endblock content %}

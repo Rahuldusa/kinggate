@@ -1,0 +1,223 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}King Gate{% endblock %}
+{% block styles %}
+    {{ block.super }}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 32px;
+            color: #1f2937;
+        }
+
+        .form-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: #2563eb;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+
+        .logo-preview {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            background-color: #f9fafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 6px;
+        }
+
+        .logo-card {
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            max-width: 320px;
+        }
+
+        .logo-circle {
+            width: 140px;
+            height: 140px;
+            margin: auto;
+            border-radius: 50%;
+            background: white;
+            border: 2px dashed #c7d2fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-circle i {
+            font-size: 48px;
+            color: #a5b4fc;
+        }
+
+        .logo-info {
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+    </style>
+{% endblock styles %}
+
+{% block content %}
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">Company Settings</h2>
+
+            <form id="companyForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Company Name -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="companyName" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="companyName" name="companyName" value="{{ organization.name }}">
+                    </div>
+
+                    <!-- GST Number -->
+                    <div class="col-md-6 mb-4">
+                        <label for="gstNumber" class="form-label">GST Number</label>
+                        <input type="text" class="form-control" id="gstNumber" name="gstNumber" value="{{ organization.gst_number }}">
+                    </div>
+                </div>
+
+                <!-- CIN Number and Email -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="cinNumber" class="form-label">CIN Number</label>
+                        <input type="text" class="form-control" id="cinNumber" name="cinNumber" value="{{ organization.cin_number }}">
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ organization.email }}">
+                    </div>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" value="{{ organization.contact }}">
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ organization.address }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Company Logo -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">Company Logo</label>
+                        <div class="logo-card text-center">
+                            <div class="logo-circle">
+                                {% if organization.logo %}
+                                    <img id="logoImage" src="{{ organization.logo.url }}" alt="Logo" style="display: block;">
+                                {% else %}
+                                    <i class="bi bi-image" id="logoIcon"></i>
+                                {% endif %}
+                            </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('logoFile').click()">
+                                    <i class="bi bi-upload"></i> Upload Logo
+                                </button>
+                            </div>
+                            <div class="logo-info mt-2" id="logoInfo"></div>
+                            <input type="file" id="logoFile" name="logoFile" accept="image/*" hidden onchange="loadLogo(event)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <button type="submit" class="btn btn-primary px-5">
+                        <i class="bi bi-check-lg"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function loadLogo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('logoImage').src = e.target.result;
+                document.getElementById('logoImage').style.display = 'block';
+                document.getElementById('logoIcon').style.display = 'none';
+                document.getElementById('logoInfo').innerText =
+                    `${file.name} • ${(file.size / 1024).toFixed(1)} KB`;
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+{% endblock content %}

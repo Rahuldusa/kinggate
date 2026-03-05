@@ -1,0 +1,1466 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}Customer Locations{% endblock %}
+{% block styles %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e429f;
+        --primary-light: #e8f0fe;
+        --success: #057a55;
+        --success-light: #def7ec;
+        --warning: #c27803;
+        --warning-light: #fdf6b2;
+        --danger: #c81e1e;
+        --danger-light: #fde8e8;
+        --info: #0369a1;
+        --info-light: #e0f2fe;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --surface-3: #f1f5f9;
+        --border: #e2e8f0;
+        --border-strong: #cbd5e1;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+        --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05);
+        --radius: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --font: 'DM Sans', sans-serif;
+        --font-mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: var(--font);
+        background: var(--surface-2);
+        color: var(--text-primary);
+        margin: 0; padding: 0;
+    }
+
+    .page-wrapper { padding: 24px; }
+
+    /* ── Toast ──────────────────────────────────────── */
+    .toast-container {
+        position: fixed; top: 20px; left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex; flex-direction: column; gap: 10px;
+        min-width: 340px;
+    }
+
+    .toast-card {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        animation: slideDown 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-card.success { background: #f0fdf4; border-color: #86efac; }
+    .toast-card.error   { background: #fef2f2; border-color: #fca5a5; }
+    .toast-card.warning { background: #fffbeb; border-color: #fcd34d; }
+    .toast-card.info    { background: #eff6ff; border-color: #93c5fd; }
+
+    .toast-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+    .toast-card.success .toast-icon { color: #16a34a; }
+    .toast-card.error   .toast-icon { color: #dc2626; }
+    .toast-card.warning .toast-icon { color: #d97706; }
+    .toast-card.info    .toast-icon { color: #2563eb; }
+
+    .toast-body { flex: 1; font-size: 0.875rem; line-height: 1.5; }
+    .toast-close {
+        background: none; border: none; cursor: pointer;
+        color: var(--text-muted); padding: 0; font-size: 16px;
+    }
+    .toast-close:hover { color: var(--text-secondary); }
+
+    /* ── Page Header ────────────────────────────────── */
+    .page-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap; gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        font-size: 1.375rem; font-weight: 700;
+        color: var(--text-primary); margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    .page-title .title-icon {
+        width: 36px; height: 36px;
+        background: var(--primary); border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 16px;
+    }
+
+    /* ── Buttons ────────────────────────────────────── */
+    .btn-solid {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 14px; border-radius: var(--radius);
+        font-family: var(--font); font-size: 0.8125rem; font-weight: 600;
+        border: 1px solid transparent; cursor: pointer;
+        transition: all 0.15s; white-space: nowrap; height: 38px;
+        text-decoration: none;
+    }
+
+    .btn-primary-solid { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-primary-solid:hover {
+        background: var(--primary-dark); color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+    }
+
+    .btn-ghost {
+        background: transparent; border: none;
+        color: var(--text-muted); cursor: pointer;
+        padding: 6px 8px; border-radius: var(--radius);
+        font-size: 15px; transition: all 0.15s;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn-ghost:hover        { background: var(--surface-3); color: var(--text-primary); }
+    .btn-ghost.edit:hover   { color: var(--primary); background: var(--primary-light); }
+    .btn-ghost.delete:hover { color: var(--danger);  background: var(--danger-light); }
+
+    /* ── Customer Summary Card ──────────────────────── */
+    .summary-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .summary-card-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    .summary-card-header .header-icon {
+        width: 30px; height: 30px;
+        background: var(--primary-light); color: var(--primary);
+        border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+    }
+
+    .summary-card-title {
+        font-size: 0.9rem; font-weight: 700;
+        color: var(--text-primary); margin: 0;
+    }
+
+    .summary-card-body { padding: 20px; }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .details-grid:last-child { margin-bottom: 0; }
+
+    .detail-item { display: flex; flex-direction: column; gap: 4px; }
+
+    .detail-label {
+        font-size: 0.68rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--text-muted);
+    }
+
+    .detail-value { font-size: 0.875rem; color: var(--text-primary); }
+
+    .location-link {
+        display: inline-flex; align-items: center; gap: 5px;
+        color: var(--primary); text-decoration: none;
+        font-size: 0.8125rem; font-weight: 600;
+    }
+    .location-link:hover { text-decoration: underline; color: var(--primary-dark); }
+
+    .no-link { color: var(--text-muted); font-size: 0.8125rem; font-style: italic; }
+
+    /* ── Badges ─────────────────────────────────────── */
+    .badge-status {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 10px; border-radius: 999px;
+        font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .badge-status::before {
+        content: ''; width: 6px; height: 6px;
+        border-radius: 50%; background: currentColor;
+    }
+    .badge-active   { background: var(--success-light); color: var(--success); }
+    .badge-inactive { background: var(--surface-3);     color: var(--text-muted); }
+
+    .badge-gst {
+        display: inline-block; padding: 2px 9px;
+        border-radius: 5px; font-size: 0.7rem; font-weight: 700;
+        background: var(--info-light); color: var(--info);
+    }
+
+    /* ── Search bar ─────────────────────────────────── */
+    .search-wrap {
+        position: relative;
+        display: flex; align-items: center; gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .search-wrap .search-icon {
+        position: absolute; left: 11px;
+        color: var(--text-muted); font-size: 13px;
+        pointer-events: none;
+    }
+
+    .search-input {
+        padding: 8px 36px 8px 32px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-family: var(--font); font-size: 0.875rem;
+        background: var(--surface); color: var(--text-primary);
+        transition: border-color 0.15s, box-shadow 0.15s;
+        height: 38px; width: 320px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+
+    .results-count { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ── Table Card ─────────────────────────────────── */
+    .table-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden; box-shadow: var(--shadow);
+    }
+
+    .table-responsive { overflow-x: auto; }
+
+    .data-table { width: 100%; border-collapse: collapse; margin: 0; }
+
+    .data-table thead tr {
+        background: var(--surface-2);
+        border-bottom: 2px solid var(--border);
+    }
+
+    .data-table thead th {
+        padding: 11px 14px;
+        font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--text-muted); white-space: nowrap; border: none;
+    }
+
+    .data-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background 0.1s;
+    }
+
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: #fafbff; }
+
+    .data-table tbody td {
+        padding: 11px 14px; font-size: 0.875rem;
+        color: var(--text-primary); vertical-align: middle; border: none;
+    }
+
+    .sno-cell {
+        font-family: var(--font-mono); font-size: 0.75rem;
+        color: var(--text-muted); width: 42px;
+    }
+
+    .cell-name  { font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+    .cell-meta  {
+        font-size: 0.775rem; color: var(--text-muted);
+        display: flex; align-items: center; gap: 4px; margin-top: 2px;
+    }
+    .cell-meta i { font-size: 10px; }
+
+    .cell-area {
+        font-size: 0.8rem; color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    .cell-address {
+        font-size: 0.8rem; color: var(--text-secondary);
+        max-width: 160px;
+    }
+
+    .cell-date {
+        font-family: var(--font-mono); font-size: 0.8rem;
+        color: var(--text-secondary); white-space: nowrap;
+    }
+
+    .actions-cell { white-space: nowrap; }
+
+    .no-results {
+        text-align: center; padding: 60px 20px; color: var(--text-muted);
+    }
+    .no-results i { font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 12px; }
+    .no-results p { margin: 4px 0 0; font-size: 0.875rem; }
+
+    .highlight { background: #fef08a; padding: 1px 2px; border-radius: 3px; }
+
+    /* ── Modals ─────────────────────────────────────── */
+    .modal-content {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        font-family: var(--font);
+    }
+
+    .modal-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .modal-title {
+        font-size: 1rem; font-weight: 700; color: var(--text-primary);
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    .modal-title .modal-icon {
+        width: 30px; height: 30px;
+        background: var(--primary-light); color: var(--primary);
+        border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+    }
+
+    .modal-body { padding: 24px; max-height: calc(100vh - 210px); overflow-y: auto; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
+
+    .form-section-title {
+        font-size: 0.75rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.07em;
+        color: var(--text-muted); margin-bottom: 14px;
+        padding-bottom: 8px; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 8px;
+    }
+    .form-section-title i { font-size: 13px; color: var(--primary); }
+
+    .form-label {
+        font-size: 0.8rem; font-weight: 600;
+        color: var(--text-secondary); margin-bottom: 5px; display: block;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 8px 12px;
+        font-family: var(--font); font-size: 0.875rem;
+        color: var(--text-primary); background: var(--surface);
+        width: 100%;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        height: 38px;
+    }
+
+    textarea.form-control { height: auto; resize: none; }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+
+    .form-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+    .input-group-btn {
+        border: 1px solid var(--border); border-left: none;
+        background: var(--surface-2); color: var(--text-muted);
+        border-radius: 0 var(--radius) var(--radius) 0;
+        padding: 0 12px; cursor: pointer; transition: all 0.15s;
+        height: 38px; display: inline-flex; align-items: center;
+    }
+    .input-group-btn:hover:not(:disabled) { background: var(--primary); color: white; border-color: var(--primary); }
+    .input-group-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .input-group .form-control { border-radius: var(--radius) 0 0 var(--radius); }
+
+    .btn-solid-modal {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 18px; border-radius: var(--radius);
+        font-family: var(--font); font-size: 0.875rem; font-weight: 600;
+        border: 1px solid transparent; cursor: pointer;
+        transition: all 0.15s; height: 38px;
+    }
+    .btn-modal-primary   { background: var(--primary); color: white; }
+    .btn-modal-primary:hover   { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-modal-secondary { background: var(--surface); color: var(--text-secondary); border-color: var(--border); }
+    .btn-modal-secondary:hover { background: var(--surface-3); }
+    .btn-modal-success   { background: var(--success); color: white; }
+    .btn-modal-success:hover   { background: #046c4e; transform: translateY(-1px); }
+
+    /* ── Upload drop zone ───────────────────────────── */
+    .drop-zone {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px 20px; text-align: center;
+        cursor: pointer; background: var(--surface-2);
+        transition: all 0.2s;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+        border-color: var(--primary); background: var(--primary-light);
+    }
+    .drop-zone i    { font-size: 2rem; color: var(--text-muted); display: block; margin-bottom: 10px; }
+    .drop-zone.dragover i { color: var(--primary); }
+    .drop-zone p    { margin: 0; font-size: 0.875rem; color: var(--text-secondary); }
+    .drop-zone small { font-size: 0.75rem; color: var(--text-muted); }
+
+    #uploadFileName {
+        margin-top: 10px; font-size: 0.8rem;
+        color: var(--success); font-weight: 600; display: none;
+    }
+
+    .upload-progress { display: none; margin-top: 12px; }
+
+    .info-callout {
+        background: var(--info-light); border: 1px solid #bae6fd;
+        border-radius: var(--radius); padding: 12px 16px;
+        font-size: 0.8125rem; color: var(--info);
+        display: flex; align-items: flex-start; gap: 10px;
+        margin-bottom: 16px;
+    }
+    .info-callout i { margin-top: 1px; flex-shrink: 0; }
+
+    /* ── Camera fields ──────────────────────────────── */
+    .camera-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .camera-item .form-control { flex: 1; font-family: var(--font-mono); font-size: 0.8125rem; }
+
+    .btn-circle {
+        width: 32px; height: 32px; border-radius: 50%;
+        border: none; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 16px; font-weight: 700; flex-shrink: 0; transition: all 0.15s;
+    }
+    .btn-circle-add    { background: var(--primary-light); color: var(--primary); }
+    .btn-circle-add:hover    { background: var(--primary); color: white; }
+    .btn-circle-remove { background: var(--danger-light);  color: var(--danger); }
+    .btn-circle-remove:hover { background: var(--danger);  color: white; }
+
+    @media (max-width: 768px) {
+        .page-wrapper { padding: 16px; }
+        .page-header  { flex-direction: column; align-items: stretch; }
+        .search-input { width: 100%; }
+        .data-table   { min-width: 900px; }
+        .details-grid { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+
+<!-- ── Toasts ─────────────────────────────────────────────────── -->
+<div class="toast-container" id="toastContainer">
+    {% for message in messages %}
+    <div class="toast-card {{ message.tags }}">
+        <div class="toast-icon">
+            {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill"></i>
+            {% elif message.tags == 'error' %}<i class="bi bi-exclamation-circle-fill"></i>
+            {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill"></i>
+            {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+        </div>
+        <div class="toast-body">{{ message }}</div>
+        <button class="toast-close" onclick="this.closest('.toast-card').remove()">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+    <!-- ── Page Header ─────────────────────────────────────────── -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <span class="title-icon"><i class="bi bi-geo-alt-fill"></i></span>
+            Customer Locations
+        </h1>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="btn-solid btn-primary-solid"
+                    data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                <i class="bi bi-plus-lg"></i> Add New Location
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Customer Summary Card ───────────────────────────────── -->
+    <div class="summary-card">
+        <div class="summary-card-header">
+            <div class="header-icon"><i class="bi bi-person-fill"></i></div>
+            <h2 class="summary-card-title">Customer Details</h2>
+        </div>
+        <div class="summary-card-body">
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Customer Name</span>
+                    <span class="detail-value">{{ customer.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value">{{ customer.email|default:"—" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Company</span>
+                    <span class="detail-value">{{ customer.company.name|default:"—" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">GST Status</span>
+                    <span class="detail-value">
+                        {% if customer.gst_registered %}
+                            <span class="badge-gst">Registered</span>
+                            <br><small style="color:var(--text-muted); font-size:0.75rem;">{{ customer.gst_number }}</small>
+                        {% else %}Not Registered{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Location</span>
+                    <span class="detail-value">
+                        {% if customer.area %}{{ customer.area.name }}, {% endif %}
+                        {% if customer.city %}{{ customer.city.name }}, {% endif %}
+                        {% if customer.state %}{{ customer.state.name }}{% endif %}
+                        {% if customer.pincode %} – {{ customer.pincode }}{% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Address</span>
+                    <span class="detail-value">{{ customer.address|default:"—" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Location Link</span>
+                    {% if customer.location_link %}
+                        <a href="{{ customer.location_link }}" target="_blank" class="location-link">
+                            <i class="bi bi-geo-alt-fill"></i> View on Map
+                        </a>
+                    {% else %}
+                        <span class="no-link">No link available</span>
+                    {% endif %}
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Subscription Plan</span>
+                    <span class="detail-value">{{ customer.subscription_plan.name|default:"—" }}</span>
+                </div>
+            </div>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Start Date</span>
+                    <span class="detail-value">{{ customer.start_date|date:"d M, Y"|default:"—" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value">
+                        {% if customer.status == "Active" %}<span class="badge-status badge-active">Active</span>
+                        {% elif customer.status == "Inactive" %}<span class="badge-status badge-inactive">Inactive</span>
+                        {% else %}{{ customer.status|default:"—" }}{% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Advance Amount</span>
+                    <span class="detail-value" style="font-family:var(--font-mono);">₹{{ customer.advance_amount|default:"0.00" }}</span>
+                </div>
+            </div>
+            {% if customer.remarks %}
+            <div class="details-grid" style="grid-template-columns: 1fr;">
+                <div class="detail-item">
+                    <span class="detail-label">Remarks</span>
+                    <span class="detail-value">{{ customer.remarks }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Search ──────────────────────────────────────────────── -->
+    <div class="search-wrap">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" id="searchInput" class="search-input"
+               placeholder="Search by name, location, GST…">
+        <span id="resultsCount" class="results-count"></span>
+    </div>
+
+    <div id="noResults" class="no-results" style="display:none;">
+        <i class="bi bi-search"></i>
+        <p><strong>No results found.</strong></p>
+        <p>Try adjusting your search terms.</p>
+    </div>
+
+    <!-- ── Locations Table ─────────────────────────────────────── -->
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="sno-cell">#</th>
+                        <th>Location</th>
+                        <th>Area</th>
+                        <th>Address</th>
+                        <th>GST</th>
+                        <th>Map</th>
+                        <th>Start Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTable">
+                    {% for loc in customer_locations %}
+                    <tr>
+                        <td class="sno-cell">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="cell-name customer-name">{{ loc.location_name }}</div>
+                            <div class="cell-meta customer-email"><i class="bi bi-envelope"></i>{{ loc.location_email }}</div>
+                            <div class="cell-meta customer-phone"><i class="bi bi-telephone"></i>{{ loc.location_contact }}</div>
+                        </td>
+                        <td>
+                            <div class="cell-area">
+                                {{ loc.state.name|default:"" }}
+                                {% if loc.city %} › {{ loc.city.name }}{% endif %}
+                                {% if loc.area %} › {{ loc.area.name }}{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="cell-address">{{ loc.address|default:"—" }}</div>
+                        </td>
+                        <td>
+                            {% if loc.gst_registered %}
+                                <span class="badge-gst">Registered</span>
+                                <div class="cell-meta" style="margin-top:3px;">{{ loc.gst_number }}</div>
+                            {% else %}
+                                <span style="color:var(--text-muted); font-size:0.8rem;">Not Registered</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if loc.location_link %}
+                                <a href="{{ loc.location_link }}" target="_blank" class="location-link">
+                                    <i class="bi bi-geo-alt-fill"></i> Map
+                                </a>
+                            {% else %}
+                                <span class="no-link">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="cell-date">{{ loc.start_date|date:"d-m-Y"|default:"—" }}</td>
+                        <td>
+                            {% if loc.is_active %}
+                                <span class="badge-status badge-active">Active</span>
+                            {% else %}
+                                <span class="badge-status badge-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions-cell">
+                            <button class="btn-ghost edit" title="Edit" onclick="editCustomer(
+                                '{{ loc.id }}',
+                                '{{ loc.location_name|escapejs }}',
+                                '{{ loc.location_email|escapejs }}',
+                                '{{ loc.location_contact|escapejs }}',
+                                '{{ loc.state.id|default:'' }}',
+                                '{{ loc.city.id|default:'' }}',
+                                '{{ loc.area.id|default:'' }}',
+                                '{{ loc.pincode|default:'' }}',
+                                '{{ loc.address|escapejs }}',
+                                '{{ loc.start_date|date:'Y-m-d' }}',
+                                '{% if loc.is_active %}Active{% else %}Inactive{% endif %}',
+                                '{{ loc.location_link|escapejs }}',
+                                [{% for cam in loc.customer_cameras_set.all %}'{{ cam.seriak_number|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+                                '{{ loc.subscription_plan.id|default:'' }}',
+                                '{{ loc.custom_subscription_amount|default:'' }}',
+                                '{{ loc.outstanding_amount|default:'' }}',
+                                {{ loc.gst_registered|yesno:'true,false' }},
+                                '{{ loc.gst_number|default:''|escapejs }}'
+                            )">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="btn-ghost delete" title="Delete"
+                                    onclick="deleteCustomer('{{ loc.id }}')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9">
+                            <div class="no-results">
+                                <i class="bi bi-geo-alt"></i>
+                                <p>No locations yet. Add one above or bulk upload from Excel.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div><!-- end page-wrapper -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL — Bulk Upload
+════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="bulkUploadModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+                    Bulk Upload Locations
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'bulk_upload_locations' customer.id %}"
+                  enctype="multipart/form-data" id="bulkUploadForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="info-callout">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>
+                            Upload an Excel file (.xlsx) using the standard template.
+                            Required columns: <strong>State, City, Area</strong>.
+                            Bills will be auto-generated for locations with a start date and subscription plan.
+                        </div>
+                    </div>
+
+                    <div class="drop-zone" id="dropZone"
+                         onclick="document.getElementById('excelFile').click()">
+                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                        <p>Click to browse or drag &amp; drop your Excel file here</p>
+                        <small>Accepted: .xlsx, .xls</small>
+                    </div>
+                    <input type="file" id="excelFile" name="excel_file"
+                           accept=".xlsx,.xls" style="display:none;" required>
+                    <div id="uploadFileName"></div>
+
+                    <div class="upload-progress" id="uploadProgress">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px;">
+                            <span>Uploading…</span><span id="progressPct">0%</span>
+                        </div>
+                        <div class="progress" style="height:8px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                 id="progressBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="justify-content:space-between;">
+                    <small style="color:var(--text-muted); font-size:0.75rem;">Max file size: 10 MB</small>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn-solid-modal btn-modal-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-solid-modal btn-modal-success"
+                                id="uploadBtn" disabled>
+                            <i class="bi bi-upload"></i> Upload &amp; Import
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL — Add Location
+════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-icon"><i class="bi bi-plus-circle"></i></div>
+                    Add New Location
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+
+                    <!-- Basic Info -->
+                    <div class="form-section-title"><i class="bi bi-geo-alt-fill"></i> Location Info</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Location Name</label>
+                            <input type="text" class="form-control" name="customer_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contact</label>
+                            <input type="tel" class="form-control" name="contact" required>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="form-section-title"><i class="bi bi-map"></i> Address</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">State <span style="color:var(--danger)">*</span></label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="">— Select State —</option>
+                                {% for state in states %}
+                                <option value="{{ state.id }}">{{ state.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City <span style="color:var(--danger)">*</span></label>
+                            <select class="form-select" id="city" name="city" required disabled>
+                                <option value="">— Select State First —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Area</label>
+                            <select class="form-select" id="area" name="area" disabled>
+                                <option value="">— Select City First —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Pincode</label>
+                            <input type="text" class="form-control" name="pincode">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="address" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Location Link</label>
+                            <div class="input-group">
+                                <input type="url" class="form-control" id="locationLink" name="location_link"
+                                       placeholder="https://maps.google.com/…">
+                                <button class="input-group-btn" type="button" id="openLocationLink" disabled>
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business -->
+                    <div class="form-section-title"><i class="bi bi-briefcase"></i> Business Details</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="start_date" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" name="status" required>
+                                <option value="">— Select —</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">GST Registered?</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="gstRegistered"
+                                       name="gst_registered" value="1"
+                                       onchange="toggleGstNumber('gstNumber', this.checked)">
+                                <label class="form-check-label" for="gstRegistered">Yes</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="gstNumberWrapper" style="display:none;">
+                            <label class="form-label">GST Number <span style="color:var(--danger)">*</span></label>
+                            <input type="text" class="form-control" id="gstNumber" name="gst_number"
+                                   placeholder="e.g. 22AAAAA0000A1Z5" maxlength="15">
+                        </div>
+                    </div>
+
+                    <!-- Subscription -->
+                    <div class="form-section-title"><i class="bi bi-receipt"></i> Subscription</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Subscription Plan</label>
+                            <select class="form-control" id="subscriptionPlan" name="subscription_plan">
+                                <option value="">— Select Plan —</option>
+                                {% for plan in subscription_plans %}
+                                <option value="{{ plan.id }}" data-price="{{ plan.price }}">
+                                    {{ plan.name }} — ₹{{ plan.price }}/{{ plan.duration }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Custom Amount
+                                <button type="button" id="useDefaultAmount"
+                                        class="btn-add-contact-main" style="display:none; font-size:0.75rem; background:none; border:none; cursor:pointer; color:var(--primary); font-weight:600;">
+                                    Use Default
+                                </button>
+                            </label>
+                            <input type="number" step="0.01" class="form-control"
+                                   id="customSubscriptionAmount" name="custom_subscription_amount"
+                                   placeholder="Override plan price">
+                            <div class="form-hint" id="defaultAmountText"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Outstanding Amount <span class="form-hint" style="display:inline;">(no GST)</span></label>
+                            <input type="number" step="0.01" class="form-control" name="outstanding_amount" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <!-- Cameras -->
+                    <div id="cameraSection" class="d-none">
+                        <div class="form-section-title"><i class="bi bi-camera-fill"></i> Camera Serial Numbers</div>
+                        <div id="cameraFields" style="display:flex; flex-direction:column; gap:8px;"></div>
+                        <button type="button" class="btn-circle btn-circle-add add-camera mt-2" style="width:auto; border-radius:var(--radius); padding:6px 12px; font-size:0.8rem; font-weight:600;">
+                            + Add Camera
+                        </button>
+                        <div class="form-hint mt-1">Only for Live Monitoring plans</div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-solid-modal btn-modal-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-solid-modal btn-modal-primary">
+                        <i class="bi bi-check-lg"></i> Save Location
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL — Edit Location
+════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-icon"><i class="bi bi-pencil-fill"></i></div>
+                    Edit Location
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editCustomerForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="editCustomerId" name="customer_id">
+                <div class="modal-body">
+
+                    <div class="form-section-title"><i class="bi bi-geo-alt-fill"></i> Location Info</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Location Name</label>
+                            <input type="text" class="form-control" id="editCustomerName" name="customer_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contact</label>
+                            <input type="tel" class="form-control" id="editContact" name="contact" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title"><i class="bi bi-map"></i> Address</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">State <span style="color:var(--danger)">*</span></label>
+                            <select class="form-select" id="editState" name="state" required>
+                                <option value="">— Select State —</option>
+                                {% for state in states %}
+                                <option value="{{ state.id }}">{{ state.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City <span style="color:var(--danger)">*</span></label>
+                            <select class="form-select" id="editCity" name="city" required disabled>
+                                <option value="">— Select State First —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Area</label>
+                            <select class="form-select" id="editArea" name="area" disabled>
+                                <option value="">— Select City First —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Pincode</label>
+                            <input type="text" class="form-control" id="editPincode" name="pincode">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Location Link</label>
+                            <div class="input-group">
+                                <input type="url" class="form-control" id="editLocationLink" name="location_link"
+                                       placeholder="https://maps.google.com/…">
+                                <button class="input-group-btn" type="button" id="openEditLocationLink" disabled>
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" id="editAddress" name="address" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title"><i class="bi bi-briefcase"></i> Business Details</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="editStartDate" name="start_date" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" id="editStatus" name="status" required>
+                                <option value="">— Select —</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">GST Registered?</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="editGstRegistered"
+                                       name="gst_registered" value="1"
+                                       onchange="toggleGstNumber('editGstNumber', this.checked)">
+                                <label class="form-check-label" for="editGstRegistered">Yes</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="editGstNumberWrapper" style="display:none;">
+                            <label class="form-label">GST Number <span style="color:var(--danger)">*</span></label>
+                            <input type="text" class="form-control" id="editGstNumber" name="gst_number"
+                                   placeholder="e.g. 22AAAAA0000A1Z5" maxlength="15">
+                        </div>
+                    </div>
+
+                    <div class="form-section-title"><i class="bi bi-receipt"></i> Subscription</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Subscription Plan</label>
+                            <select class="form-control" id="editSubscriptionPlan" name="subscription_plan">
+                                <option value="">— Select Plan —</option>
+                                {% for plan in subscription_plans %}
+                                <option value="{{ plan.id }}" data-price="{{ plan.price }}">
+                                    {{ plan.name }} — ₹{{ plan.price }}/{{ plan.duration }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Custom Amount
+                                <button type="button" id="useDefaultAmountEdit"
+                                        style="display:none; background:none; border:none; cursor:pointer; color:var(--primary); font-weight:600; font-size:0.75rem;">
+                                    Use Default
+                                </button>
+                            </label>
+                            <input type="number" step="0.01" class="form-control"
+                                   id="editCustomSubscriptionAmount" name="custom_subscription_amount">
+                            <div class="form-hint" id="editDefaultAmountText"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Outstanding Amount <span class="form-hint" style="display:inline;">(no GST)</span></label>
+                            <input type="number" step="0.01" class="form-control"
+                                   id="editOutstandingAmount" name="outstanding_amount">
+                        </div>
+                    </div>
+
+                    <!-- Cameras -->
+                    <div id="editCameraSection" class="d-none">
+                        <div class="form-section-title"><i class="bi bi-camera-fill"></i> Camera Serial Numbers</div>
+                        <div id="editCameraFields" style="display:flex; flex-direction:column; gap:8px;"></div>
+                        <button type="button" class="btn-circle btn-circle-add add-edit-camera mt-2" style="width:auto; border-radius:var(--radius); padding:6px 12px; font-size:0.8rem; font-weight:600;">
+                            + Add Camera
+                        </button>
+                        <div class="form-hint mt-1">Only for Live Monitoring plans</div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-solid-modal btn-modal-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-solid-modal btn-modal-primary">
+                        <i class="bi bi-check-lg"></i> Update Location
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ── Toasts — auto-dismiss after 5s ─────────────── */
+document.querySelectorAll('.toast-card').forEach(el => {
+    setTimeout(() => {
+        el.style.transition = 'opacity 0.4s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+    }, 5000);
+});
+
+/* ══════════════════════════════════════════════════
+   ALL ORIGINAL FUNCTIONALITY — UNCHANGED BELOW
+══════════════════════════════════════════════════ */
+
+// ── GST toggle ────────────────────────────────────────────────────────────
+function toggleGstNumber(inputId, isChecked) {
+    const wrapperId = inputId === 'gstNumber' ? 'gstNumberWrapper' : 'editGstNumberWrapper';
+    const wrapper   = document.getElementById(wrapperId);
+    if (wrapper) wrapper.style.display = isChecked ? 'block' : 'none';
+    if (!isChecked) document.getElementById(inputId).value = '';
+}
+
+// ── Subscription plan (ADD) ───────────────────────────────────────────────
+document.getElementById('subscriptionPlan').addEventListener('change', function () {
+    const text       = this.options[this.selectedIndex].text.toLowerCase();
+    const price      = this.options[this.selectedIndex].getAttribute('data-price');
+    const customInp  = document.getElementById('customSubscriptionAmount');
+    const defBtn     = document.getElementById('useDefaultAmount');
+    const defText    = document.getElementById('defaultAmountText');
+    document.getElementById('cameraSection').classList.toggle('d-none', !text.includes('live'));
+    if (price) { defText.textContent = `Default: ₹${price}`; defBtn.style.display = 'inline-block'; }
+    else        { defText.textContent = ''; defBtn.style.display = 'none'; customInp.value = ''; }
+});
+document.getElementById('useDefaultAmount').addEventListener('click', function () {
+    const sel = document.getElementById('subscriptionPlan');
+    document.getElementById('customSubscriptionAmount').value = sel.options[sel.selectedIndex].getAttribute('data-price');
+});
+
+// ── Subscription plan (EDIT) ──────────────────────────────────────────────
+document.getElementById('editSubscriptionPlan').addEventListener('change', function () {
+    const text  = this.options[this.selectedIndex].text.toLowerCase();
+    const price = this.options[this.selectedIndex].getAttribute('data-price');
+    const defBtn   = document.getElementById('useDefaultAmountEdit');
+    const defText  = document.getElementById('editDefaultAmountText');
+    document.getElementById('editCameraSection').classList.toggle('d-none', !text.includes('live'));
+    if (price) { defText.textContent = `Default: ₹${price}`; defBtn.style.display = 'inline-block'; }
+    else        { defText.textContent = ''; defBtn.style.display = 'none'; }
+});
+document.getElementById('useDefaultAmountEdit').addEventListener('click', function () {
+    const sel = document.getElementById('editSubscriptionPlan');
+    document.getElementById('editCustomSubscriptionAmount').value = sel.options[sel.selectedIndex].getAttribute('data-price');
+});
+
+// ── editCustomer ──────────────────────────────────────────────────────────
+function editCustomer(id, name, email, contact, stateId, cityId, areaId,
+                      pincode, address, startDate, status, locationLink,
+                      cameras, planId, customAmt, outstandingAmt,
+                      gstRegistered, gstNumber) {
+
+    document.getElementById('editCustomerForm').action = '/customers_location/update/' + id + '/';
+    document.getElementById('editCustomerId').value               = id;
+    document.getElementById('editCustomerName').value             = name;
+    document.getElementById('editEmail').value                    = email;
+    document.getElementById('editContact').value                  = contact;
+    document.getElementById('editPincode').value                  = pincode;
+    document.getElementById('editAddress').value                  = address || '';
+    document.getElementById('editStartDate').value                = startDate || '';
+    document.getElementById('editLocationLink').value             = locationLink || '';
+    document.getElementById('editCustomSubscriptionAmount').value = customAmt || '';
+    document.getElementById('editOutstandingAmount').value        = outstandingAmt || '';
+    document.getElementById('editStatus').value                   = status;
+    document.getElementById('editSubscriptionPlan').value         = planId || '';
+
+    // GST
+    const gstCb  = document.getElementById('editGstRegistered');
+    const gstWr  = document.getElementById('editGstNumberWrapper');
+    const gstInp = document.getElementById('editGstNumber');
+    gstCb.checked          = gstRegistered;
+    gstWr.style.display    = gstRegistered ? 'block' : 'none';
+    gstInp.value           = gstNumber || '';
+
+    // location link open btn
+    document.getElementById('openEditLocationLink').disabled = !(locationLink && locationLink.trim());
+
+    // cameras
+    const camSection = document.getElementById('editCameraSection');
+    const camFields  = document.getElementById('editCameraFields');
+    camFields.innerHTML = '';
+    if (cameras && cameras.length > 0) {
+        camSection.classList.remove('d-none');
+        cameras.forEach(function (s) {
+            const div = document.createElement('div');
+            div.className = 'camera-item';
+            div.innerHTML = '<input type="text" class="form-control" name="camera_serials[]" value="' + s + '">'
+                          + '<button type="button" class="btn-circle btn-circle-remove remove-edit-camera">−</button>';
+            camFields.appendChild(div);
+        });
+    } else {
+        camSection.classList.add('d-none');
+    }
+
+    // cascading dropdowns
+    function loadAreas(cityId, selAreaId) {
+        const areaEl = document.getElementById('editArea');
+        areaEl.innerHTML = '<option value="">Loading…</option>';
+        areaEl.disabled  = true;
+        fetch('/api/areas/' + cityId + '/')
+            .then(r => r.json())
+            .then(areas => {
+                areaEl.innerHTML = '<option value="">— Select Area —</option>';
+                areas.forEach(a => areaEl.appendChild(new Option(a.name, a.id)));
+                areaEl.disabled = false;
+                if (selAreaId) areaEl.value = selAreaId;
+            });
+    }
+    function loadCities(stateId, selCityId, selAreaId) {
+        const cityEl = document.getElementById('editCity');
+        const areaEl = document.getElementById('editArea');
+        cityEl.innerHTML = '<option value="">Loading…</option>';
+        cityEl.disabled  = true;
+        areaEl.innerHTML = '<option value="">— Select City First —</option>';
+        areaEl.disabled  = true;
+        fetch('/api/cities/' + stateId + '/')
+            .then(r => r.json())
+            .then(cities => {
+                cityEl.innerHTML = '<option value="">— Select City —</option>';
+                cities.forEach(c => cityEl.appendChild(new Option(c.name, c.id)));
+                cityEl.disabled = false;
+                if (selCityId) { cityEl.value = selCityId; loadAreas(selCityId, selAreaId); }
+            });
+    }
+    document.getElementById('editState').value = stateId;
+    if (stateId) {
+        loadCities(stateId, cityId, areaId);
+    } else {
+        document.getElementById('editCity').innerHTML = '<option value="">— Select State First —</option>';
+        document.getElementById('editCity').disabled  = true;
+        document.getElementById('editArea').innerHTML = '<option value="">— Select City First —</option>';
+        document.getElementById('editArea').disabled  = true;
+    }
+
+    new bootstrap.Modal(document.getElementById('editCustomerModal')).show();
+}
+
+// ── deleteCustomer ────────────────────────────────────────────────────────
+function deleteCustomer(locationId) {
+    if (!confirm('Delete this location? This cannot be undone.')) return;
+    const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch('/customers_location/delete/' + locationId + '/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }
+    })
+    .then(r => {
+        if (r.ok) { alert('Deleted successfully.'); window.location.reload(); }
+        else       { alert('Error deleting location.'); }
+    })
+    .catch(() => alert('Network error.'));
+}
+
+// ── Camera add/remove (delegated) ─────────────────────────────────────────
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('add-camera') || e.target.closest('.add-camera')) {
+        const btn = e.target.classList.contains('add-camera') ? e.target : e.target.closest('.add-camera');
+        if (btn.type === 'button') {
+            const c = document.getElementById('cameraFields');
+            const d = document.createElement('div');
+            d.className = 'camera-item';
+            d.innerHTML = '<input type="text" class="form-control" name="camera_serials[]" placeholder="Serial number">'
+                        + '<button type="button" class="btn-circle btn-circle-remove remove-camera">−</button>';
+            c.appendChild(d);
+        }
+    }
+    if (e.target.classList.contains('remove-camera'))      e.target.closest('.camera-item').remove();
+    if (e.target.classList.contains('add-edit-camera') || e.target.closest('.add-edit-camera')) {
+        const btn = e.target.classList.contains('add-edit-camera') ? e.target : e.target.closest('.add-edit-camera');
+        if (btn.type === 'button') {
+            const c = document.getElementById('editCameraFields');
+            const d = document.createElement('div');
+            d.className = 'camera-item';
+            d.innerHTML = '<input type="text" class="form-control" name="camera_serials[]" placeholder="Serial number">'
+                        + '<button type="button" class="btn-circle btn-circle-remove remove-edit-camera">−</button>';
+            c.appendChild(d);
+        }
+    }
+    if (e.target.classList.contains('remove-edit-camera')) e.target.closest('.camera-item').remove();
+});
+
+// ── Location link open buttons ────────────────────────────────────────────
+function setupLinkBtn(inputId, btnId) {
+    const inp = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (!inp || !btn) return;
+    inp.addEventListener('input', () => btn.disabled = !inp.value.trim());
+    btn.addEventListener('click', () => {
+        let url = inp.value.trim();
+        if (url) window.open(url.match(/^https?:\/\//) ? url : 'https://' + url, '_blank');
+    });
+}
+setupLinkBtn('locationLink',     'openLocationLink');
+setupLinkBtn('editLocationLink', 'openEditLocationLink');
+
+// ── Bulk upload UI ────────────────────────────────────────────────────────
+(function () {
+    const fileInput   = document.getElementById('excelFile');
+    const dropZone    = document.getElementById('dropZone');
+    const fileNameEl  = document.getElementById('uploadFileName');
+    const uploadBtn   = document.getElementById('uploadBtn');
+    const form        = document.getElementById('bulkUploadForm');
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressPct = document.getElementById('progressPct');
+
+    function setFile(file) {
+        if (!file) return;
+        fileNameEl.textContent = '📄 ' + file.name + '  (' + (file.size / 1024).toFixed(1) + ' KB)';
+        fileNameEl.style.display = 'block';
+        uploadBtn.disabled = false;
+    }
+
+    fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            setFile(file);
+        }
+    });
+
+    form.addEventListener('submit', function () {
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importing…';
+        progressDiv.style.display = 'block';
+        let w = 10;
+        const interval = setInterval(() => {
+            if (w < 85) { w += Math.random() * 8; progressBar.style.width = w + '%'; progressPct.textContent = Math.round(w) + '%'; }
+        }, 400);
+    });
+})();
+
+// ── Cascading dropdowns (ADD modal) ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+
+    const stateEl = document.getElementById('state');
+    const cityEl  = document.getElementById('city');
+    const areaEl  = document.getElementById('area');
+
+    stateEl.addEventListener('change', function () {
+        cityEl.innerHTML = '<option value="">Loading…</option>'; cityEl.disabled = true;
+        areaEl.innerHTML = '<option value="">— Select City First —</option>'; areaEl.disabled = true;
+        if (this.value) {
+            fetch('/api/cities/' + this.value + '/').then(r => r.json()).then(cities => {
+                cityEl.innerHTML = '<option value="">— Select City —</option>';
+                cities.forEach(c => cityEl.appendChild(new Option(c.name, c.id)));
+                cityEl.disabled = false;
+            });
+        } else { cityEl.innerHTML = '<option value="">— Select State First —</option>'; }
+    });
+
+    cityEl.addEventListener('change', function () {
+        areaEl.innerHTML = '<option value="">Loading…</option>'; areaEl.disabled = true;
+        if (this.value) {
+            fetch('/api/areas/' + this.value + '/').then(r => r.json()).then(areas => {
+                areaEl.innerHTML = '<option value="">— Select Area —</option>';
+                areas.forEach(a => areaEl.appendChild(new Option(a.name, a.id)));
+                areaEl.disabled = false;
+            });
+        } else { areaEl.innerHTML = '<option value="">— Select City First —</option>'; }
+    });
+
+    // EDIT modal cascading (on state/city change)
+    document.getElementById('editState').addEventListener('change', function () {
+        const ec = document.getElementById('editCity');
+        const ea = document.getElementById('editArea');
+        ec.innerHTML = '<option value="">Loading…</option>'; ec.disabled = true;
+        ea.innerHTML = '<option value="">— Select City First —</option>'; ea.disabled = true;
+        if (this.value) {
+            fetch('/api/cities/' + this.value + '/').then(r => r.json()).then(cities => {
+                ec.innerHTML = '<option value="">— Select City —</option>';
+                cities.forEach(c => ec.appendChild(new Option(c.name, c.id)));
+                ec.disabled = false;
+            });
+        } else { ec.innerHTML = '<option value="">— Select State First —</option>'; }
+    });
+
+    document.getElementById('editCity').addEventListener('change', function () {
+        const ea = document.getElementById('editArea');
+        ea.innerHTML = '<option value="">Loading…</option>'; ea.disabled = true;
+        if (this.value) {
+            fetch('/api/areas/' + this.value + '/').then(r => r.json()).then(areas => {
+                ea.innerHTML = '<option value="">— Select Area —</option>';
+                areas.forEach(a => ea.appendChild(new Option(a.name, a.id)));
+                ea.disabled = false;
+            });
+        } else { ea.innerHTML = '<option value="">— Select City First —</option>'; }
+    });
+
+    // ── Table search ─────────────────────────────────────────────────────
+    const searchInput  = document.getElementById('searchInput');
+    const tableBody    = document.getElementById('customerTable');
+    const noResults    = document.getElementById('noResults');
+    const resultsCount = document.getElementById('resultsCount');
+    const allRows      = tableBody.querySelectorAll('tr');
+
+    function highlight(el, term) {
+        const text  = el.textContent;
+        const lower = text.toLowerCase();
+        const i     = lower.indexOf(term);
+        if (i !== -1) {
+            el.innerHTML = text.substring(0, i)
+                         + '<span class="highlight">' + text.substring(i, i + term.length) + '</span>'
+                         + text.substring(i + term.length);
+        }
+    }
+
+    searchInput.addEventListener('input', function () {
+        const term    = this.value.toLowerCase().trim();
+        let   visible = 0;
+
+        allRows.forEach(row => {
+            row.querySelectorAll('.highlight').forEach(el => el.outerHTML = el.textContent);
+            const haystack = row.textContent.toLowerCase();
+            if (!term || haystack.includes(term)) {
+                row.style.display = '';
+                visible++;
+                if (term) {
+                    ['.customer-name', '.customer-email', '.customer-phone'].forEach(sel => {
+                        const el = row.querySelector(sel);
+                        if (el) highlight(el, term);
+                    });
+                }
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        noResults.style.display = (visible === 0 && term) ? 'block' : 'none';
+        resultsCount.textContent = term ? `${visible} of ${allRows.length} results` : '';
+    });
+
+    searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { searchInput.value = ''; searchInput.dispatchEvent(new Event('input')); }
+    });
+});
+</script>
+{% endblock content %}

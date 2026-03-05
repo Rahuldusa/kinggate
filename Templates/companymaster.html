@@ -1,0 +1,1247 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}Company Management{% endblock %}
+{% block styles %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e429f;
+        --primary-light: #e8f0fe;
+        --success: #057a55;
+        --success-light: #def7ec;
+        --warning: #c27803;
+        --warning-light: #fdf6b2;
+        --danger: #c81e1e;
+        --danger-light: #fde8e8;
+        --info: #0369a1;
+        --info-light: #e0f2fe;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --surface-3: #f1f5f9;
+        --border: #e2e8f0;
+        --border-strong: #cbd5e1;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+        --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05);
+        --radius: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --font: 'DM Sans', sans-serif;
+        --font-mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: var(--font);
+        background: var(--surface-2);
+        color: var(--text-primary);
+        margin: 0; padding: 0;
+    }
+
+    /* ── Page wrapper ───────────────────────────────── */
+    .page-wrapper { padding: 24px; }
+
+    /* ── Toast ──────────────────────────────────────── */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 340px;
+    }
+
+    .toast-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        animation: slideDown 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-card.success { background: #f0fdf4; border-color: #86efac; }
+    .toast-card.error   { background: #fef2f2; border-color: #fca5a5; }
+    .toast-card.warning { background: #fffbeb; border-color: #fcd34d; }
+    .toast-card.info    { background: #eff6ff; border-color: #93c5fd; }
+
+    .toast-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+    .toast-card.success .toast-icon { color: #16a34a; }
+    .toast-card.error   .toast-icon { color: #dc2626; }
+    .toast-card.warning .toast-icon { color: #d97706; }
+    .toast-card.info    .toast-icon { color: #2563eb; }
+
+    .toast-body { flex: 1; font-size: 0.875rem; line-height: 1.5; }
+    .toast-close {
+        background: none; border: none; cursor: pointer;
+        color: var(--text-muted); padding: 0; font-size: 16px;
+    }
+    .toast-close:hover { color: var(--text-secondary); }
+
+    /* ── Page Header ────────────────────────────────── */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        font-size: 1.375rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .page-title .title-icon {
+        width: 36px; height: 36px;
+        background: var(--primary);
+        border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 16px;
+    }
+
+    /* ── Toolbar ────────────────────────────────────── */
+    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    /* ── Buttons ────────────────────────────────────── */
+    .btn-solid {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 14px;
+        border-radius: var(--radius);
+        font-family: var(--font);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        height: 38px;
+        text-decoration: none;
+    }
+
+    .btn-primary-solid { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-primary-solid:hover {
+        background: var(--primary-dark); color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+    }
+
+    .btn-success-solid { background: var(--success); color: white; border-color: var(--success); }
+    .btn-success-solid:hover {
+        background: #046c4e; color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(5,122,85,0.3);
+    }
+
+    .btn-ghost {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: var(--radius);
+        font-size: 14px;
+        transition: all 0.15s;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn-ghost:hover { background: var(--surface-3); color: var(--text-primary); }
+    .btn-ghost.edit:hover  { color: var(--primary); background: var(--primary-light); }
+    .btn-ghost.delete:hover { color: var(--danger); background: var(--danger-light); }
+    .btn-ghost.view:hover  { color: var(--success); background: var(--success-light); }
+
+    /* ── Company Grid ───────────────────────────────── */
+    .company-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 16px;
+    }
+
+    .company-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+        transition: box-shadow 0.2s, transform 0.2s;
+        position: relative;
+    }
+
+    .company-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .company-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .company-icon {
+        width: 44px; height: 44px;
+        border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .company-icon.variant-1 { background: var(--primary-light); color: var(--primary); }
+    .company-icon.variant-2 { background: var(--success-light); color: var(--success); }
+    .company-icon.variant-3 { background: #faf5ff; color: #7c3aed; }
+    .company-icon.variant-4 { background: #fff7ed; color: #c2410c; }
+
+    .company-info { flex: 1; min-width: 0; }
+
+    .company-name {
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+        line-height: 1.3;
+    }
+
+    .badge-gst {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 5px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .badge-gst.yes { background: var(--success-light); color: var(--success); }
+    .badge-gst.no  { background: var(--surface-3); color: var(--text-muted); }
+
+    .company-actions { display: flex; gap: 2px; flex-shrink: 0; }
+
+    .company-details { display: flex; flex-direction: column; gap: 6px; }
+
+    .detail-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    .detail-row i {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+        flex-shrink: 0;
+        width: 14px;
+        text-align: center;
+    }
+
+    .detail-row a { color: var(--primary); text-decoration: none; }
+    .detail-row a:hover { text-decoration: underline; }
+
+    /* ── Modals ─────────────────────────────────────── */
+    .modal-content {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        font-family: var(--font);
+    }
+
+    .modal-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .modal-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    .modal-title .modal-icon {
+        width: 30px; height: 30px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+    }
+
+    .modal-body { padding: 24px; max-height: calc(100vh - 210px); overflow-y: auto; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
+
+    .form-section { margin-bottom: 24px; }
+
+    .form-section-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 8px;
+    }
+    .form-section-title i { font-size: 13px; color: var(--primary); }
+
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 8px 12px;
+        font-family: var(--font);
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        background: var(--surface);
+        width: 100%;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        height: 38px;
+    }
+
+    textarea.form-control { height: auto; resize: none; }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+
+    .form-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+    .input-group-text {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-right: none;
+        color: var(--text-muted);
+        font-size: 13px;
+        border-radius: var(--radius) 0 0 var(--radius);
+        padding: 8px 12px;
+        height: 38px;
+    }
+
+    .input-group .form-control {
+        border-left: none;
+        border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .input-group .form-control:focus {
+        border-color: var(--primary);
+        border-left-color: transparent;
+        box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+
+    .btn-outline-secondary {
+        border: 1px solid var(--border);
+        border-left: none;
+        color: var(--text-secondary);
+        background: var(--surface);
+        font-size: 0.8125rem;
+        height: 38px;
+        padding: 0 12px;
+        cursor: pointer;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        transition: all 0.15s;
+        display: none;
+    }
+    .btn-outline-secondary:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-outline-secondary.visible { display: inline-flex; align-items: center; gap: 5px; }
+
+    .img-preview-wrap {
+        margin-top: 8px;
+        display: none;
+    }
+    .img-preview-wrap small { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px; }
+    .img-preview-wrap img {
+        max-height: 80px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 4px;
+        background: var(--surface);
+    }
+    .img-preview-wrap.qr img { max-height: 120px; }
+
+    .btn-solid-modal {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 18px;
+        border-radius: var(--radius);
+        font-family: var(--font);
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+        height: 38px;
+    }
+
+    .btn-modal-primary { background: var(--primary); color: white; }
+    .btn-modal-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-modal-secondary { background: var(--surface); color: var(--text-secondary); border-color: var(--border); }
+    .btn-modal-secondary:hover { background: var(--surface-3); }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 64px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state i { font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 12px; }
+    .empty-state p { margin: 0; font-size: 0.9rem; }
+
+    @media (max-width: 768px) {
+        .page-wrapper { padding: 16px; }
+        .page-header { flex-direction: column; align-items: stretch; }
+        .company-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Toasts ─────────────────────────────────────────────────── -->
+<div class="toast-container" id="toastContainer">
+    {% for message in messages %}
+    <div class="toast-card {{ message.tags }}" id="toast-{{ forloop.counter }}">
+        <div class="toast-icon">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-times-circle"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>
+            {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+        </div>
+        <div class="toast-body">{{ message }}</div>
+        <button class="toast-close" onclick="this.closest('.toast-card').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+    <!-- ── Page Header ─────────────────────────────────────────── -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <span class="title-icon"><i class="fas fa-building"></i></span>
+            Company Management
+        </h1>
+        <div class="toolbar">
+            <button class="btn-solid btn-success-solid" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i> Export
+            </button>
+            {% if role_permissions.company_master_a %}
+            <button class="btn-solid btn-primary-solid"
+                    data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+                <i class="fas fa-plus"></i> Add Company
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Company Grid ────────────────────────────────────────── -->
+    <div class="company-grid" id="companyGrid">
+        {% for company in companies %}
+        {% with icons="1 2 3 4" %}
+        <div class="company-card">
+            <div class="company-card-header">
+                <div class="company-icon variant-{{ forloop.counter|add:'0'|divisibleby:4|yesno:'4,1' }}">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="company-info">
+                    <div class="company-name">{{ company.name }}</div>
+                    <span class="badge-gst {% if company.gst_registered %}yes{% else %}no{% endif %}">
+                        {% if company.gst_registered %}GST Registered{% else %}Non-GST{% endif %}
+                    </span>
+                </div>
+                <div class="company-actions">
+                    {% if role_permissions.company_master_e %}
+                    <button class="btn-ghost edit" title="Edit"
+                        data-company-id="{{ company.id }}"
+                        data-company-name="{{ company.name|escapejs }}"
+                        data-company-email="{{ company.email|escapejs }}"
+                        data-company-contact="{{ company.contact|escapejs }}"
+                        data-company-contact2="{{ company.contact_2|default:''|escapejs }}"
+                        data-company-address="{{ company.address|escapejs }}"
+                        data-company-area="{% if company.area %}{{ company.area.id }}{% endif %}"
+                        data-company-city="{% if company.city %}{{ company.city.id }}{% endif %}"
+                        data-company-state="{% if company.state %}{{ company.state.id }}{% endif %}"
+                        data-company-pincode="{{ company.pincode|default:''|escapejs }}"
+                        data-company-gst="{{ company.gst_registered|lower }}"
+                        data-company-gstnumber="{{ company.gst_number|default:''|escapejs }}"
+                        data-company-person="{{ company.Contact_person|default:''|escapejs }}"
+                        data-company-personemail="{{ company.contact_person_email|default:''|escapejs }}"
+                        data-company-personphone="{{ company.contact_person_phone|default:''|escapejs }}"
+                        data-company-startdate="{% if company.start_date %}{{ company.start_date|date:'Y-m-d' }}{% endif %}"
+                        data-company-status="{{ company.status|default:''|escapejs }}"
+                        data-company-locationlink="{{ company.location_link|default:''|escapejs }}"
+                        data-company-logo="{% if company.logo %}{{ company.logo.url }}{% endif %}"
+                        data-company-qrcode="{% if company.qr_code %}{{ company.qr_code.url }}{% endif %}"
+                        data-company-bankname="{{ company.bank_name|default:''|escapejs }}"
+                        data-company-accountnumber="{{ company.account_number|default:''|escapejs }}"
+                        data-company-ifsccode="{{ company.ifsc_code|default:''|escapejs }}"
+                        data-company-branchname="{{ company.branch_name|default:''|escapejs }}"
+                        onclick="editCompanyData(this)">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    {% endif %}
+
+                    <button class="btn-ghost view" title="View Locations"
+                        onclick="window.location.href='{% url 'company_locations' company.id %}'">
+                        <i class="bi bi-eye"></i>
+                    </button>
+
+                    {% if role_permissions.company_master_d %}
+                    <button class="btn-ghost delete" title="Delete"
+                        onclick="deleteCompany({{ company.id }}, '{{ company.name|escapejs }}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="company-details">
+                <div class="detail-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ company.address }}{% if company.area %}, {{ company.area }}{% endif %}{% if company.city %}, {{ company.city }}{% endif %}{% if company.state %}, {{ company.state }}{% endif %}{% if company.pincode %} – {{ company.pincode }}{% endif %}</span>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-phone"></i>
+                    <span>{{ company.contact }}{% if company.contact_2 %}, {{ company.contact_2 }}{% endif %}</span>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-envelope"></i>
+                    <span>{{ company.email }}</span>
+                </div>
+                {% if company.location_link %}
+                <div class="detail-row">
+                    <i class="fas fa-map-pin"></i>
+                    <a href="{{ company.location_link }}" target="_blank">View on Map</a>
+                </div>
+                {% endif %}
+                {% if company.gst_registered and company.gst_number %}
+                <div class="detail-row">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>GST: {{ company.gst_number }}</span>
+                </div>
+                {% endif %}
+                {% if company.Contact_person %}
+                <div class="detail-row">
+                    <i class="fas fa-user"></i>
+                    <span>{{ company.Contact_person }}{% if company.contact_person_phone %} · {{ company.contact_person_phone }}{% endif %}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endwith %}
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-building"></i>
+            <p>No companies found. Add your first company to get started!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div><!-- end page-wrapper -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL 1 — Add Company
+════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="addCompanyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-icon"><i class="fas fa-building"></i></div>
+                    Add New Company
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'company_management' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+
+                    <!-- Basic Info -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-building"></i> Basic Information</div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Company Name <span style="color:var(--danger)">*</span></label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Company Logo</label>
+                                <input type="file" class="form-control" id="addLogo" name="logo" accept="image/*">
+                                <div class="img-preview-wrap" id="addLogoPreviewBox">
+                                    <small>Logo Preview:</small>
+                                    <img id="addLogoPreviewImg" src="" alt="Logo Preview">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email <span style="color:var(--danger)">*</span></label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Contact <span style="color:var(--danger)">*</span></label>
+                                <input type="tel" class="form-control" name="contact" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Contact 2</label>
+                                <input type="tel" class="form-control" name="contact_2">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status <span style="color:var(--danger)">*</span></label>
+                                <select class="form-select" name="status" required>
+                                    <option value="">— Select —</option>
+                                    <option>Active</option>
+                                    <option>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" name="start_date">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Location Link <span class="form-hint" style="display:inline;">(Google Maps or any URL)</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="url" class="form-control" id="addLocationLink" name="location_link" placeholder="https://maps.google.com/…">
+                                    <button class="btn-outline-secondary" type="button" id="previewAddLocationBtn"
+                                            onclick="previewLocation('addLocationLink')">
+                                        <i class="fas fa-external-link-alt"></i> Preview
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-map-pin"></i> Address Details</div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Address <span style="color:var(--danger)">*</span></label>
+                                <textarea class="form-control" name="address" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">State</label>
+                                <select class="form-select" name="state" id="addState">
+                                    <option value="">— Select State —</option>
+                                    {% for state in state_list %}
+                                    <option value="{{ state.id }}">{{ state.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">City</label>
+                                <select class="form-select" name="city" id="addCity" disabled>
+                                    <option value="">— Select State First —</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Area</label>
+                                <select class="form-select" name="area" id="addArea" disabled>
+                                    <option value="">— Select City First —</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" class="form-control" name="pincode" maxlength="10">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GST -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-file-invoice"></i> GST Information</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">GST Registered <span style="color:var(--danger)">*</span></label>
+                                <select class="form-select" name="gst_registered" id="addGstRegistered"
+                                        onchange="toggleAddGSTNumber()" required>
+                                    <option value="">— Select —</option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="addGstNumberField" style="display:none;">
+                                <label class="form-label">GST Number</label>
+                                <input type="text" class="form-control" name="gst_number" maxlength="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Person -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-user"></i> Contact Person</div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" name="contact_person">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="contact_person_email">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control" name="contact_person_phone">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Details -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-university"></i> Bank Details</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Bank Name</label>
+                                <input type="text" class="form-control" name="bank_name" placeholder="e.g. HDFC Bank">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Branch Name</label>
+                                <input type="text" class="form-control" name="branch_name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Account Number</label>
+                                <input type="text" class="form-control" name="account_number">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" name="ifsc_code" maxlength="11" placeholder="e.g. HDFC0001234">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Payment QR Code</label>
+                                <input type="file" class="form-control" id="addQrCode" name="qr_code" accept="image/*">
+                                <div class="img-preview-wrap qr" id="addQrCodePreviewBox">
+                                    <small>QR Code Preview:</small>
+                                    <img id="addQrCodePreviewImg" src="" alt="QR Preview">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-solid-modal btn-modal-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-solid-modal btn-modal-primary">
+                        <i class="fas fa-building"></i> Add Company
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL 2 — Edit Company
+════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="editCompanyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-icon"><i class="fas fa-edit"></i></div>
+                    Edit Company
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="editCompanyFormInner" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-building"></i> Basic Information</div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Company Name <span style="color:var(--danger)">*</span></label>
+                                <input type="text" class="form-control" name="name" id="editCompanyName" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Company Logo</label>
+                                <input type="file" class="form-control" id="editLogo" name="editlogo" accept="image/*">
+                                <div class="img-preview-wrap" id="currentLogoPreview">
+                                    <small>Current Logo:</small>
+                                    <img id="editLogoPreviewImg" src="" alt="Logo">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email <span style="color:var(--danger)">*</span></label>
+                                <input type="email" class="form-control" name="email" id="editEmail" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Contact <span style="color:var(--danger)">*</span></label>
+                                <input type="tel" class="form-control" name="contact" id="editContact" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Contact 2</label>
+                                <input type="tel" class="form-control" name="contact_2" id="editContact2">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status <span style="color:var(--danger)">*</span></label>
+                                <select class="form-select" name="status" id="editStatus" required>
+                                    <option value="">— Select —</option>
+                                    <option>Active</option>
+                                    <option>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" name="start_date" id="editStartDate">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Location Link</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="url" class="form-control" id="editLocationLink" name="location_link" placeholder="https://maps.google.com/…">
+                                    <button class="btn-outline-secondary" type="button" id="previewEditLocationBtn"
+                                            onclick="previewLocation('editLocationLink')">
+                                        <i class="fas fa-external-link-alt"></i> Preview
+                                    </button>
+                                </div>
+                                <div class="form-hint" id="editCurrentLocationLink" style="display:none;">
+                                    Current: <a id="editCurrentLocationLinkUrl" href="#" target="_blank">View on Map <i class="fas fa-external-link-alt" style="font-size:10px;"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-map-pin"></i> Address Details</div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Address <span style="color:var(--danger)">*</span></label>
+                                <textarea class="form-control" name="address" id="editAddress" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">State</label>
+                                <select class="form-select" name="state" id="editState">
+                                    <option value="">— Select State —</option>
+                                    {% for state in state_list %}
+                                    <option value="{{ state.id }}">{{ state.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">City</label>
+                                <select class="form-select" name="city" id="editCity" disabled>
+                                    <option value="">— Select State First —</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Area</label>
+                                <select class="form-select" name="area" id="editArea" disabled>
+                                    <option value="">— Select City First —</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" class="form-control" name="pincode" id="editPincode" maxlength="10">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-file-invoice"></i> GST Information</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">GST Registered <span style="color:var(--danger)">*</span></label>
+                                <select class="form-select" name="gst_registered" id="editGstRegistered"
+                                        onchange="toggleEditGSTNumber()" required>
+                                    <option value="">— Select —</option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="editGstNumberField">
+                                <label class="form-label">GST Number</label>
+                                <input type="text" class="form-control" name="gst_number" id="editGstNumber" maxlength="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-user"></i> Contact Person</div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" name="contact_person" id="editContactPerson">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="contact_person_email" id="editContactPersonEmail">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control" name="contact_person_phone" id="editContactPersonPhone">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" style="margin-bottom:0;">
+                        <div class="form-section-title"><i class="fas fa-university"></i> Bank Details</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Bank Name</label>
+                                <input type="text" class="form-control" name="bank_name" id="editBankName">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Branch Name</label>
+                                <input type="text" class="form-control" name="branch_name" id="editBranchName">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Account Number</label>
+                                <input type="text" class="form-control" name="account_number" id="editAccountNumber">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" name="ifsc_code" id="editIfscCode" maxlength="11">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Payment QR Code</label>
+                                <input type="file" class="form-control" id="editQrCode" name="editqr_code" accept="image/*">
+                                <div class="img-preview-wrap qr" id="currentQrCodePreview">
+                                    <small>Current QR Code:</small>
+                                    <img id="editQrCodePreviewImg" src="" alt="QR Code">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-solid-modal btn-modal-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-solid-modal btn-modal-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   TOASTS — auto-dismiss after 5 s
+══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.toast-card').forEach(el => {
+    setTimeout(() => {
+        el.style.transition = 'opacity 0.4s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+    }, 5000);
+});
+
+
+/* ══════════════════════════════════════════════════════════════
+   LOCATION LINK PREVIEW BUTTONS
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function () {
+    const addLink = document.getElementById('addLocationLink');
+    const addBtn  = document.getElementById('previewAddLocationBtn');
+    if (addLink && addBtn) {
+        addLink.addEventListener('input', function () {
+            addBtn.classList.toggle('visible', !!this.value.trim());
+        });
+    }
+
+    const editLink = document.getElementById('editLocationLink');
+    const editBtn  = document.getElementById('previewEditLocationBtn');
+    if (editLink && editBtn) {
+        editLink.addEventListener('input', function () {
+            editBtn.classList.toggle('visible', !!this.value.trim());
+        });
+    }
+});
+
+function previewLocation(inputId) {
+    const url = document.getElementById(inputId).value.trim();
+    if (!url) { alert('Please enter a location link first.'); return; }
+    try { new URL(url); window.open(url, '_blank'); }
+    catch (e) { alert('Please enter a valid URL.'); }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   GST TOGGLE
+══════════════════════════════════════════════════════════════ */
+function toggleAddGSTNumber() {
+    const v = document.getElementById('addGstRegistered').value;
+    document.getElementById('addGstNumberField').style.display = v === 'yes' ? 'block' : 'none';
+}
+
+function toggleEditGSTNumber() {
+    const v = document.getElementById('editGstRegistered').value;
+    document.getElementById('editGstNumberField').style.display = v === 'yes' ? 'block' : 'none';
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   CASCADING DROPDOWNS — Add modal
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function () {
+    setupCascade('addState', 'addCity', 'addArea');
+});
+
+function setupCascade(stateId, cityId, areaId) {
+    const stateEl = document.getElementById(stateId);
+    const cityEl  = document.getElementById(cityId);
+    const areaEl  = document.getElementById(areaId);
+    if (!stateEl) return;
+
+    stateEl.addEventListener('change', function () {
+        cityEl.innerHTML = '<option value="">Loading…</option>';
+        cityEl.disabled = true;
+        areaEl.innerHTML = '<option value="">— Select City First —</option>';
+        areaEl.disabled = true;
+        if (!this.value) { cityEl.innerHTML = '<option value="">— Select State First —</option>'; return; }
+        fetch(`/api/cities/${this.value}/`).then(r => r.json()).then(cities => {
+            cityEl.innerHTML = '<option value="">— Select City —</option>';
+            cities.forEach(c => cityEl.appendChild(new Option(c.name, c.id)));
+            cityEl.disabled = false;
+        });
+    });
+
+    cityEl.addEventListener('change', function () {
+        areaEl.innerHTML = '<option value="">Loading…</option>';
+        areaEl.disabled = true;
+        if (!this.value) { areaEl.innerHTML = '<option value="">— Select City First —</option>'; return; }
+        fetch(`/api/areas/${this.value}/`).then(r => r.json()).then(areas => {
+            areaEl.innerHTML = '<option value="">— Select Area —</option>';
+            areas.forEach(a => areaEl.appendChild(new Option(a.name, a.id)));
+            areaEl.disabled = false;
+        });
+    });
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   IMAGE PREVIEWS
+══════════════════════════════════════════════════════════════ */
+function bindPreview(inputId, imgId, boxId) {
+    document.getElementById(inputId).addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            document.getElementById(imgId).src = URL.createObjectURL(file);
+            document.getElementById(boxId).style.display = 'block';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    bindPreview('addLogo',   'addLogoPreviewImg',   'addLogoPreviewBox');
+    bindPreview('addQrCode', 'addQrCodePreviewImg', 'addQrCodePreviewBox');
+    bindPreview('editLogo',  'editLogoPreviewImg',  'currentLogoPreview');
+    bindPreview('editQrCode','editQrCodePreviewImg','currentQrCodePreview');
+
+    // Reset Add modal on open
+    document.getElementById('addCompanyModal').addEventListener('show.bs.modal', function () {
+        ['addLogo','addQrCode'].forEach(id => document.getElementById(id).value = '');
+        ['addLogoPreviewImg','addQrCodePreviewImg'].forEach(id => document.getElementById(id).src = '');
+        ['addLogoPreviewBox','addQrCodePreviewBox'].forEach(id => document.getElementById(id).style.display = 'none');
+    });
+});
+
+
+/* ══════════════════════════════════════════════════════════════
+   EDIT COMPANY — populate modal
+══════════════════════════════════════════════════════════════ */
+let editStateSelect, editCitySelect, editAreaSelect;
+
+document.addEventListener('DOMContentLoaded', function () {
+    editStateSelect = document.getElementById('editState');
+    editCitySelect  = document.getElementById('editCity');
+    editAreaSelect  = document.getElementById('editArea');
+
+    if (!editStateSelect) return;
+
+    editStateSelect.addEventListener('change', function () {
+        editCitySelect.innerHTML = '<option value="">Loading…</option>';
+        editCitySelect.disabled = true;
+        editAreaSelect.innerHTML = '<option value="">— Select City First —</option>';
+        editAreaSelect.disabled = true;
+        if (!this.value) return;
+        fetch(`/api/cities/${this.value}/`).then(r => r.json()).then(cities => {
+            editCitySelect.innerHTML = '<option value="">— Select City —</option>';
+            cities.forEach(c => editCitySelect.appendChild(new Option(c.name, c.id)));
+            editCitySelect.disabled = false;
+        });
+    });
+
+    editCitySelect.addEventListener('change', function () {
+        editAreaSelect.innerHTML = '<option value="">Loading…</option>';
+        editAreaSelect.disabled = true;
+        if (!this.value) return;
+        fetch(`/api/areas/${this.value}/`).then(r => r.json()).then(areas => {
+            editAreaSelect.innerHTML = '<option value="">— Select Area —</option>';
+            areas.forEach(a => editAreaSelect.appendChild(new Option(a.name, a.id)));
+            editAreaSelect.disabled = false;
+        });
+    });
+});
+
+function editCompanyData(btn) {
+    const g = attr => btn.getAttribute('data-company-' + attr) || '';
+
+    document.getElementById('editCompanyFormInner').action = `/companies/update/${g('id')}/`;
+    document.getElementById('editCompanyName').value        = g('name');
+    document.getElementById('editEmail').value              = g('email');
+    document.getElementById('editContact').value            = g('contact');
+    document.getElementById('editContact2').value           = g('contact2');
+    document.getElementById('editAddress').value            = g('address');
+    document.getElementById('editPincode').value            = g('pincode');
+    document.getElementById('editStartDate').value          = g('startdate');
+    document.getElementById('editStatus').value             = g('status');
+    document.getElementById('editLocationLink').value       = g('locationlink');
+    document.getElementById('editContactPerson').value      = g('person');
+    document.getElementById('editContactPersonEmail').value = g('personemail');
+    document.getElementById('editContactPersonPhone').value = g('personphone');
+    document.getElementById('editGstNumber').value          = g('gstnumber');
+    document.getElementById('editBankName').value           = g('bankname');
+    document.getElementById('editAccountNumber').value      = g('accountnumber');
+    document.getElementById('editIfscCode').value           = g('ifsccode');
+    document.getElementById('editBranchName').value         = g('branchname');
+
+    // GST
+    const gstSel = document.getElementById('editGstRegistered');
+    gstSel.value = g('gst') === 'true' ? 'yes' : 'no';
+    toggleEditGSTNumber();
+
+    // Location link display
+    const locationLink = g('locationlink');
+    const linkSpan = document.getElementById('editCurrentLocationLink');
+    const linkUrl  = document.getElementById('editCurrentLocationLinkUrl');
+    const previewBtn = document.getElementById('previewEditLocationBtn');
+    if (locationLink) {
+        linkSpan.style.display = 'inline';
+        linkUrl.href = locationLink;
+        previewBtn.classList.add('visible');
+    } else {
+        linkSpan.style.display = 'none';
+        previewBtn.classList.remove('visible');
+    }
+
+    // Logo
+    const logoUrl = g('logo');
+    const logoBox = document.getElementById('currentLogoPreview');
+    const logoImg = document.getElementById('editLogoPreviewImg');
+    logoBox.style.display = logoUrl ? 'block' : 'none';
+    logoImg.src = logoUrl;
+
+    // QR Code
+    const qrUrl = g('qrcode');
+    const qrBox = document.getElementById('currentQrCodePreview');
+    const qrImg = document.getElementById('editQrCodePreviewImg');
+    qrBox.style.display = qrUrl ? 'block' : 'none';
+    qrImg.src = qrUrl;
+
+    // Cascade state→city→area
+    editCitySelect.innerHTML = '<option value="">— Select State First —</option>';
+    editCitySelect.disabled = true;
+    editAreaSelect.innerHTML = '<option value="">— Select City First —</option>';
+    editAreaSelect.disabled = true;
+
+    const stateId = g('state');
+    const cityId  = g('city');
+    const areaId  = g('area');
+
+    if (stateId) {
+        editStateSelect.value = stateId;
+        editCitySelect.innerHTML = '<option value="">Loading…</option>';
+        fetch(`/api/cities/${stateId}/`).then(r => r.json()).then(cities => {
+            editCitySelect.innerHTML = '<option value="">— Select City —</option>';
+            cities.forEach(c => editCitySelect.appendChild(new Option(c.name, c.id)));
+            editCitySelect.disabled = false;
+            if (cityId) {
+                editCitySelect.value = cityId;
+                editAreaSelect.innerHTML = '<option value="">Loading…</option>';
+                fetch(`/api/areas/${cityId}/`).then(r => r.json()).then(areas => {
+                    editAreaSelect.innerHTML = '<option value="">— Select Area —</option>';
+                    areas.forEach(a => editAreaSelect.appendChild(new Option(a.name, a.id)));
+                    editAreaSelect.disabled = false;
+                    if (areaId) editAreaSelect.value = areaId;
+                });
+            }
+        });
+    }
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editCompanyModal')).show();
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   DELETE
+══════════════════════════════════════════════════════════════ */
+function deleteCompany(id, name) {
+    if (!confirm(`Delete "${name}"?\n\nThis cannot be undone.`)) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/companies/delete/${id}/`;
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
+    csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   EXPORT
+══════════════════════════════════════════════════════════════ */
+function exportToExcel() {
+    const btn = event.currentTarget;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting…';
+    btn.disabled = true;
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = '/export/companies/';
+    document.body.appendChild(iframe);
+    setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.disabled = false;
+        document.body.removeChild(iframe);
+    }, 2000);
+}
+</script>
+
+{% endblock content %}

@@ -1,0 +1,1322 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}King Gate{% endblock %}
+{% block styles %}
+    {{ block.super }}
+   
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-content-wrapper {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 1.5rem;
+            transition: margin-left 0.3s;
+        }
+        
+        .with-sidebar .main-content-wrapper {
+            margin-left: 250px;
+        }
+        
+        .with-navbar .main-content-wrapper {
+            margin-top: 60px;
+        }
+        
+        .with-sidebar.with-navbar .main-content-wrapper {
+            margin-left: 250px;
+            margin-top: 60px;
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-dropdown {
+            min-width: 200px;
+        }
+        
+        .btn-add-company {
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        
+        .company-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.25rem;
+        }
+        .company-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            position: relative;
+        }
+        .company-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .company-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        .company-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .company-icon.icon-1 {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .company-icon.icon-2 {
+            background-color: #e1f5fe;
+            color: #0288d1;
+        }
+        .company-icon.icon-3 {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+        .company-icon.icon-4 {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        .company-info {
+            flex: 1;
+        }
+        .company-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+        .gst-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.813rem;
+            font-weight: 600;
+        }
+        .gst-registered {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .non-gst {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        .company-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 0.375rem;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.3s;
+            font-size: 1rem;
+        }
+        .action-btn.edit:hover {
+            color: #0d6efd;
+        }
+        .action-btn.delete:hover {
+            color: #dc3545;
+        }
+        .company-details {
+            margin-top: 1rem;
+        }
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.625rem;
+            color: #495057;
+            font-size: 0.875rem;
+        }
+        .detail-item i {
+            width: 18px;
+            margin-right: 0.625rem;
+            color: #6c757d;
+            margin-top: 0.125rem;
+            font-size: 0.875rem;
+        }
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+        .modal-title {
+            font-weight: 700;
+            color: #1a1a1a;
+            font-size: 1.25rem;
+        }
+        .modal-body {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.375rem;
+            font-size: 0.875rem;
+        }
+        .form-control, .form-select {
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #dee2e6;
+            font-size: 0.875rem;
+            height: auto;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .modal-footer {
+            padding: 1rem 1.5rem;
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-right: 0;
+        }
+
+        .input-group .form-control {
+            border-left: 0;
+        }
+
+        .input-group .form-control:focus {
+            border-color: #dee2e6;
+            box-shadow: none;
+        }
+
+        .input-group .form-control:focus + .btn-outline-secondary {
+            border-color: #0d6efd;
+        }
+
+        .btn-outline-secondary {
+            border-color: #dee2e6;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+
+        #currentLocationLink a,
+        #editCurrentLocationLink a {
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        #currentLocationLink a:hover,
+        #editCurrentLocationLink a:hover {
+            text-decoration: underline;
+        }
+        textarea.form-control {
+            resize: none;
+        }
+        .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+        }
+        .toast {
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+            border-radius: 0.5rem;
+        }
+        .toast-header {
+            border-bottom: none;
+            padding: 0.75rem 1rem;
+            background-color: transparent;
+        }
+        .toast-body {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+        }
+        .toast.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .toast.success .toast-header {
+            color: #155724;
+        }
+        .toast.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .toast.error .toast-header {
+            color: #721c24;
+        }
+        .toast.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .toast.info .toast-header {
+            color: #0c5460;
+        }
+        .toast.warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .toast.warning .toast-header {
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .header-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-controls {
+                width: 100%;
+            }
+            .filter-dropdown {
+                flex: 1;
+                min-width: auto;
+            }
+            .btn-add-company {
+                width: 100%;
+            }
+            .company-grid {
+                grid-template-columns: 1fr;
+            }
+            .toast-container {
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                right: auto;
+            }
+            .toast {
+                min-width: auto;
+            }
+        }
+        @media (max-width: 576px) {
+            .main-content-wrapper {
+                padding: 1rem;
+            }
+            .company-card {
+                padding: 1rem;
+            }
+            .company-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.125rem;
+            }
+            .company-name {
+                font-size: 0.9375rem;
+            }
+            .detail-item {
+                font-size: 0.813rem;
+            }
+        }
+    </style>
+{% endblock styles %}
+{% block content %}
+    <!-- Toast Container -->
+    <div class="toast-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast {{ message.tags }}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+                    <div class="toast-header">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elif message.tags == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        <strong class="me-auto">
+                            {% if message.tags == 'success' %}
+                                Success
+                            {% elif message.tags == 'error' %}
+                                Error
+                            {% elif message.tags == 'warning' %}
+                                Warning
+                            {% elif message.tags == 'info' %}
+                                Info
+                            {% endif %}
+                        </strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+ <div class="header-section">
+    <h2 class="mb-0"></h2>
+    <div style="display: flex; gap: 0.5rem;">
+        <button class="btn btn-success btn-add-company" onclick="exportToExcel()">
+            <i class="fas fa-file-excel me-2"></i>Export
+        </button>
+        <button class="btn btn-primary btn-add-company" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+            <i class="fas fa-plus me-2"></i>Add Company
+        </button>
+    </div>
+</div>
+        
+
+        
+
+      
+        <div class="company-grid" id="companyGrid">
+    {% for company in companies %}
+    <div class="company-card" data-type="{% if company.gst_registered %}gst{% else %}non-gst{% endif %}">
+        <div class="company-header">
+            <div class="company-icon icon-{{ forloop.counter|divisibleby:4|yesno:'4,1' }}">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="company-info">
+                <div class="company-name">{{ company.name }}</div>
+                <span class="gst-badge {% if company.gst_registered %}gst-registered{% else %}non-gst{% endif %}">
+                    {% if company.gst_registered %}GST Registered{% else %}Non-GST{% endif %}
+                </span>
+            </div>
+            <div class="company-actions">
+               <button class="action-btn edit" 
+    data-company-id="{{ company.id }}"
+    data-company-name="{{ company.name|escapejs }}"
+    data-company-email="{{ company.email|escapejs }}"
+    data-company-contact="{{ company.contact|escapejs }}"
+    data-company-contact2="{{ company.contact_2|default:''|escapejs }}"
+    data-company-address="{{ company.address|escapejs }}"
+    data-company-area="{% if company.area %}{{ company.area.id }}{% endif %}"
+    data-company-city="{% if company.city %}{{ company.city.id }}{% endif %}"
+    data-company-state="{% if company.state %}{{ company.state.id }}{% endif %}"
+    data-company-pincode="{{ company.pincode|default:''|escapejs }}"
+    data-company-gst="{{ company.gst_registered|lower }}"
+    data-company-gstnumber="{{ company.gst_number|default:''|escapejs }}"
+    data-company-person="{{ company.Contact_person|default:''|escapejs }}"
+    data-company-personemail="{{ company.contact_person_email|default:''|escapejs }}"
+    data-company-personphone="{{ company.contact_person_phone|default:''|escapejs }}"
+    data-company-startdate="{% if company.start_date %}{{ company.start_date|date:'Y-m-d' }}{% endif %}"
+    data-company-status="{{ company.status|default:''|escapejs }}"
+    data-company-locationlink="{{ company.location_link|default:''|escapejs }}"
+     data-company-logo="{% if company.logo %}{{ company.logo.url }}{% endif %}"
+    data-company-processingfee="{{ company.processing_fee|default:''|escapejs }}"
+    onclick="editCompanyData(this)">
+    <i class="fas fa-edit"></i>
+</button>
+  <button class="action-btn view" onclick="window.location.href='{% url 'company_locations' company.id %}'">
+    <i class="bi bi-eye"></i>
+</button>
+                <button class="action-btn delete" onclick="deleteCompany({{ company.id }}, '{{ company.name|escapejs }}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="company-details">
+            <div class="detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ company.address }}{% if company.area %}, {{ company.area }}{% endif %}{% if company.city %}, {{ company.city }}{% endif %}{% if company.state %}, {{ company.state }}{% endif %}{% if company.pincode %} {{ company.pincode }}{% endif %}</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-phone"></i>
+                <span>{{ company.contact }}{% if company.contact_2 %}, {{ company.contact_2 }}{% endif %}</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-envelope"></i>
+                <span>{{ company.email }}</span>
+            </div>
+            {% if company.location_link %}
+            <div class="detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span><a href="{{ company.location_link }}" target="_blank" class="text-primary">View Location</a></span>
+            </div>
+            {% endif %}
+            {% if company.gst_registered and company.gst_number %}
+            <div class="detail-item">
+                <i class="fas fa-file-invoice"></i>
+                <span>GST: {{ company.gst_number }}</span>
+            </div>
+            {% endif %}
+            {% if company.Contact_person %}
+            <div class="detail-item">
+                <i class="fas fa-user"></i>
+                <span>Contact Person: {{ company.Contact_person }}{% if company.contact_person_phone %} - {{ company.contact_person_phone }}{% endif %}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="fas fa-building fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No companies found. Add your first company to get started.</p>
+    </div>
+    {% endfor %}
+</div>
+          
+
+  <!-- Add Company Modal -->
+<!-- Add Company Modal - Change all IDs from "edit*" to "add*" -->
+<div class="modal fade" id="addCompanyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'company_management' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Company</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Basic Information Section -->
+                    <div class="section-title">Basic Information</div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="addName" class="form-label">Company Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="addName" name="name" required>
+                        </div>
+                    </div>
+                    <div class="row">
+  
+    <div class="col-md-12 mb-3">
+        <label for="addLogo" class="form-label">Company Logo</label>
+        <input type="file" class="form-control" id="addLogo" name="logo" accept="image/*">
+
+        <div id="addLogoPreviewBox" style="margin-top:8px; display:none;">
+            <small class="text-muted">Logo Preview:</small><br>
+            <img id="addLogoPreviewImg"
+                 src=""
+                 alt="Logo Preview"
+                 style="max-height:80px; border:1px solid #ddd; border-radius:6px; padding:4px;">
+        </div>
+    </div>
+</div>
+
+
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="addEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="addContact" class="form-label">Contact <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="addContact" name="contact" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addContact2" class="form-label">Contact 2</label>
+                            <input type="tel" class="form-control" id="addContact2" name="contact_2">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="addStatus" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="addStatus" required>
+                                <option value="">Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addStartDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="start_date" id="addStartDate">
+                        </div>
+                        {% comment %} <div class="col-md-6 mb-3">
+                            <label for="addSubscriptionPlan" class="form-label">Subscription Plan</label>
+                            <select class="form-select" name="subscription_plan" id="addSubscriptionPlan">
+                                <option value="">Select Plan</option>
+                                {% for plan in subscription_plans %}
+                                <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price }}/{{ plan.duration }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div> {% endcomment %}
+
+                    <!-- Location Link -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="addLocationLink" class="form-label">
+                                Location Link
+                                <small class="text-muted">(Google Maps or any location URL)</small>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                <input type="url" 
+                                       class="form-control" 
+                                       id="addLocationLink" 
+                                       name="location_link" 
+                                       placeholder="https://maps.google.com/...">
+                                <button class="btn btn-outline-secondary" 
+                                        type="button" 
+                                        id="previewAddLocationBtn" 
+                                        onclick="previewLocation('addLocationLink')"
+                                        style="display: none;">
+                                    <i class="fas fa-external-link-alt"></i> Preview
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Address Section -->
+                    <div class="section-title">Address Details</div>
+                    
+                    <div class="mb-3">
+                        <label for="addAddress" class="form-label">Address <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="address" id="addAddress" rows="2" required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addState" class="form-label">State</label>
+                            <select class="form-select" name="state" id="addState">
+                                <option value="">-- Select State --</option>
+                                {% for state in state_list %}
+                                    <option value="{{ state.id }}">{{ state.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="addCity" class="form-label">City</label>
+                            <select class="form-select" name="city" id="addCity" disabled>
+                                <option value="">-- Select State First --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addArea" class="form-label">Area</label>
+                            <select class="form-select" name="area" id="addArea" disabled>
+                                <option value="">-- Select City First --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="addPincode" class="form-label">Pincode</label>
+                            <input type="text" class="form-control" name="pincode" id="addPincode" maxlength="10">
+                        </div>
+                    </div>
+
+                    <!-- GST Information Section -->
+                    <div class="section-title">GST Information</div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addGstRegistered" class="form-label">GST Registered <span class="text-danger">*</span></label>
+                            <select class="form-select" name="gst_registered" id="addGstRegistered" onchange="toggleAddGSTNumber()" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3" id="addGstNumberField" style="display: none;">
+                            <label for="addGstNumber" class="form-label">GST Number</label>
+                            <input type="text" class="form-control" name="gst_number" id="addGstNumber" maxlength="20">
+                        </div>
+                    </div>
+
+                    <!-- Contact Person Section -->
+                    <div class="section-title">Contact Person Details</div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="addContactPerson" class="form-label">Contact Person Name</label>
+                            <input type="text" class="form-control" name="contact_person" id="addContactPerson">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addContactPersonEmail" class="form-label">Contact Person Email</label>
+                            <input type="email" class="form-control" name="contact_person_email" id="addContactPersonEmail">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="addContactPersonPhone" class="form-label">Contact Person Phone</label>
+                            <input type="tel" class="form-control" name="contact_person_phone" id="addContactPersonPhone">
+                        </div>
+                    </div>
+
+                    <!-- Processing Fee -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="addProcessingFee" class="form-label">Processing Fee</label>
+                            <input type="number" class="form-control" id="addProcessingFee" name="processing_fee" placeholder="Enter processing fee" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Add Company</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Edit Company Modal -->
+<div class="modal fade" id="editCompanyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form method="POST" id="editCompanyFormInner" enctype="multipart/form-data">
+
+
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Company</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Basic Information Section -->
+                    <div class="section-title">Basic Information</div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="editCompanyName" class="form-label">Company Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" id="editCompanyName" required>
+                        </div>
+                    </div>
+                    <div class="row">
+    <div class="col-md-12 mb-3">
+        <label for="editLogo" class="form-label">Company Logo</label>
+        <input type="file" class="form-control" id="editLogo" name="editlogo" accept="image/*">
+
+        <div id="currentLogoPreview" style="margin-top:8px; display:none;">
+            <small class="text-muted">Current Logo:</small><br>
+            <img id="editLogoPreviewImg" src="" alt="Company Logo"
+                 style="max-height:80px; border:1px solid #ddd; border-radius:6px; padding:4px;">
+        </div>
+    </div>
+</div>
+
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" id="editEmail" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editContact" class="form-label">Contact <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" name="contact" id="editContact" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editContact2" class="form-label">Contact 2</label>
+                            <input type="tel" class="form-control" name="contact_2" id="editContact2">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editStatus" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="editStatus" required>
+                                <option value="">Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editStartDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="start_date" id="editStartDate">
+                        </div>
+                        {% comment %} <div class="col-md-6 mb-3">
+                            <label for="editSubscriptionPlan" class="form-label">Subscription Plan</label>
+                            <select class="form-select" name="subscription_plan" id="editSubscriptionPlan">
+                                <option value="">Select Plan</option>
+                                {% for plan in subscription_plans %}
+                                <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price }}/{{ plan.duration }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div> {% endcomment %}
+
+                    <!-- Location Link -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="editLocationLink" class="form-label">
+                                Location Link
+                                <small class="text-muted">(Google Maps or any location URL)</small>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                <input type="url" 
+                                       class="form-control" 
+                                       id="editLocationLink" 
+                                       name="location_link" 
+                                       placeholder="https://maps.google.com/...">
+                                <button class="btn btn-outline-secondary" 
+                                        type="button" 
+                                        id="previewEditLocationBtn" 
+                                        onclick="previewLocation('editLocationLink')"
+                                        style="display: none;">
+                                    <i class="fas fa-external-link-alt"></i> Preview
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                <span id="editCurrentLocationLink" style="display: none;">
+                                    Current: <a href="#" id="editCurrentLocationLinkUrl" target="_blank" class="text-primary">
+                                        <i class="fas fa-external-link-alt"></i> View on Map
+                                    </a>
+                                </span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Address Section -->
+                    <div class="section-title">Address Details</div>
+                    
+                    <div class="mb-3">
+                        <label for="editAddress" class="form-label">Address <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="address" id="editAddress" rows="2" required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editState" class="form-label">State</label>
+                            <select class="form-select" name="state" id="editState">
+                                <option value="">-- Select State --</option>
+                                {% for state in state_list %}
+                                    <option value="{{ state.id }}">{{ state.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCity" class="form-label">City</label>
+                            <select class="form-select" name="city" id="editCity" disabled>
+                                <option value="">-- Select State First --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editArea" class="form-label">Area</label>
+                            <select class="form-select" name="area" id="editArea" disabled>
+                                <option value="">-- Select City First --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editPincode" class="form-label">Pincode</label>
+                            <input type="text" class="form-control" name="pincode" id="editPincode" maxlength="10">
+                        </div>
+                    </div>
+
+                    <!-- GST Information Section -->
+                    <div class="section-title">GST Information</div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editGstRegistered" class="form-label">GST Registered <span class="text-danger">*</span></label>
+                            <select class="form-select" name="gst_registered" id="editGstRegistered" onchange="toggleEditGSTNumber()" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3" id="editGstNumberField">
+                            <label for="editGstNumber" class="form-label">GST Number</label>
+                            <input type="text" class="form-control" name="gst_number" id="editGstNumber" maxlength="20">
+                        </div>
+                    </div>
+
+                    <!-- Contact Person Section -->
+                    <div class="section-title">Contact Person Details</div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="editContactPerson" class="form-label">Contact Person Name</label>
+                            <input type="text" class="form-control" name="contact_person" id="editContactPerson">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editContactPersonEmail" class="form-label">Contact Person Email</label>
+                            <input type="email" class="form-control" name="contact_person_email" id="editContactPersonEmail">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editContactPersonPhone" class="form-label">Contact Person Phone</label>
+                            <input type="tel" class="form-control" name="contact_person_phone" id="editContactPersonPhone">
+                        </div>
+                    </div>
+
+                    <!-- Processing Fee -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editProcessingFee" class="form-label">Processing Fee</label>
+                            <input type="number" class="form-control" id="editProcessingFee" name="processing_fee" placeholder="Enter processing fee" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Update Company</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Show toasts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const toastElements = document.querySelectorAll('.toast');
+        toastElements.forEach(function(toastEl) {
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        });
+
+        // Location link preview button handlers
+       const addLocationInput = document.getElementById('addLocationLink');
+const previewAddBtn = document.getElementById('previewAddLocationBtn');
+
+if (addLocationInput && previewAddBtn) {
+    addLocationInput.addEventListener('input', function() {
+        previewAddBtn.style.display = this.value.trim() ? 'block' : 'none';
+    });
+}
+
+        
+        const editLocationLinkInput = document.getElementById('editLocationLink');
+        const previewEditBtn = document.getElementById('previewEditLocationBtn');
+        
+        if (editLocationLinkInput) {
+            editLocationLinkInput.addEventListener('input', function() {
+                previewEditBtn.style.display = this.value.trim() ? 'block' : 'none';
+            });
+        }
+    });
+
+    function previewLocation(inputId) {
+        const input = document.getElementById(inputId);
+        const url = input.value.trim();
+        
+        if (url) {
+            try {
+                new URL(url);
+                window.open(url, '_blank');
+            } catch (e) {
+                alert('Please enter a valid URL (e.g., https://maps.google.com/...)');
+            }
+        } else {
+            alert('Please enter a location link first');
+        }
+    }
+
+    function toggleAddGSTNumber() {
+    const gstRegistered = document.getElementById('addGstRegistered').value;
+    const gstNumberField = document.getElementById('addGstNumberField');
+    gstNumberField.style.display = gstRegistered === 'yes' ? 'block' : 'none';
+}
+
+    function toggleEditGSTNumber() {
+        const gstRegistered = document.getElementById('editGstRegistered').value;
+        const gstNumberField = document.getElementById('editGstNumberField');
+        gstNumberField.style.display = gstRegistered === 'yes' ? 'block' : 'none';
+    }
+
+   
+document.addEventListener("DOMContentLoaded", function () {
+
+    const stateSelect = document.getElementById("addState");
+    const citySelect  = document.getElementById("addCity");
+    const areaSelect  = document.getElementById("addArea");
+
+    if (!stateSelect || !citySelect || !areaSelect) return;
+
+    // STATE → CITY
+    stateSelect.addEventListener("change", function () {
+        const stateId = this.value;
+
+        citySelect.innerHTML = '<option value="">-- Loading Cities... --</option>';
+        citySelect.disabled = true;
+
+        areaSelect.innerHTML = '<option value="">-- Select City First --</option>';
+        areaSelect.disabled = true;
+
+        if (!stateId) {
+            citySelect.innerHTML = '<option value="">-- Select State First --</option>';
+            return;
+        }
+
+        fetch(`/api/cities/${stateId}/`)
+            .then(response => response.json())
+            .then(cities => {
+                citySelect.innerHTML = '<option value="">-- Select City --</option>';
+                cities.forEach(city => {
+                    citySelect.innerHTML +=
+                        `<option value="${city.id}">${city.name}</option>`;
+                });
+                citySelect.disabled = false;
+            })
+            .catch(() => {
+                citySelect.innerHTML = '<option value="">-- Error Loading Cities --</option>';
+            });
+    });
+
+    // CITY → AREA
+    citySelect.addEventListener("change", function () {
+        const cityId = this.value;
+
+        areaSelect.innerHTML = '<option value="">-- Loading Areas... --</option>';
+        areaSelect.disabled = true;
+
+        if (!cityId) {
+            areaSelect.innerHTML = '<option value="">-- Select City First --</option>';
+            return;
+        }
+
+        fetch(`/api/areas/${cityId}/`)
+            .then(response => response.json())
+            .then(areas => {
+                areaSelect.innerHTML = '<option value="">-- Select Area --</option>';
+                areas.forEach(area => {
+                    areaSelect.innerHTML +=
+                        `<option value="${area.id}">${area.name}</option>`;
+                });
+                areaSelect.disabled = false;
+            })
+            .catch(() => {
+                areaSelect.innerHTML = '<option value="">-- Error Loading Areas --</option>';
+            });
+    });
+
+});
+
+   let editStateSelect, editCitySelect, editAreaSelect;
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    editStateSelect = document.getElementById('editState');
+    editCitySelect = document.getElementById('editCity');
+    editAreaSelect = document.getElementById('editArea');
+
+    if (!editStateSelect || !editCitySelect || !editAreaSelect) {
+        console.error('Edit location dropdowns not found');
+        return;
+    }
+
+    editStateSelect.addEventListener('change', function() {
+        const stateId = this.value;
+
+        editCitySelect.innerHTML = '<option value="">-- Loading Cities... --</option>';
+        editCitySelect.disabled = true;
+
+        editAreaSelect.innerHTML = '<option value="">-- Select City First --</option>';
+        editAreaSelect.disabled = true;
+
+        if (!stateId) return;
+
+        fetch(`/api/cities/${stateId}/`)
+            .then(res => res.json())
+            .then(cities => {
+                editCitySelect.innerHTML = '<option value="">-- Select City --</option>';
+                cities.forEach(c => {
+                    editCitySelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+                editCitySelect.disabled = false;
+            });
+    });
+
+    editCitySelect.addEventListener('change', function() {
+        const cityId = this.value;
+
+        editAreaSelect.innerHTML = '<option value="">-- Loading Areas... --</option>';
+        editAreaSelect.disabled = true;
+
+        if (!cityId) return;
+
+        fetch(`/api/areas/${cityId}/`)
+            .then(res => res.json())
+            .then(areas => {
+                editAreaSelect.innerHTML = '<option value="">-- Select Area --</option>';
+                areas.forEach(a => {
+                    editAreaSelect.innerHTML += `<option value="${a.id}">${a.name}</option>`;
+                });
+                editAreaSelect.disabled = false;
+            });
+    });
+
+});
+
+
+    function editCompanyData(button) {
+        const id = button.getAttribute('data-company-id') || '';
+        const name = button.getAttribute('data-company-name') || '';
+        const email = button.getAttribute('data-company-email') || '';
+        const contact = button.getAttribute('data-company-contact') || '';
+        const contact2 = button.getAttribute('data-company-contact2') || '';
+        const address = button.getAttribute('data-company-address') || '';
+        const area = button.getAttribute('data-company-area') || '';
+        const city = button.getAttribute('data-company-city') || '';
+        const state = button.getAttribute('data-company-state') || '';
+        const pincode = button.getAttribute('data-company-pincode') || '';
+        const gstRegistered = button.getAttribute('data-company-gst') || '';
+        const gstNumber = button.getAttribute('data-company-gstnumber') || '';
+        const contactPerson = button.getAttribute('data-company-person') || '';
+        const contactPersonEmail = button.getAttribute('data-company-personemail') || '';
+        const contactPersonPhone = button.getAttribute('data-company-personphone') || '';
+        const startDate = button.getAttribute('data-company-startdate') || '';
+        const status = button.getAttribute('data-company-status') || '';
+        const locationLink = button.getAttribute('data-company-locationlink') || '';
+        const processingFee = button.getAttribute('data-company-processingfee') || '';
+        
+        const form = document.getElementById('editCompanyFormInner');
+
+        form.action = `/companies/update/${id}/`;
+        
+        document.getElementById('editCompanyName').value = name;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editContact').value = contact;
+        document.getElementById('editContact2').value = contact2;
+        document.getElementById('editAddress').value = address;
+        document.getElementById('editPincode').value = pincode;
+        const gstSelect = document.getElementById('editGstRegistered');
+gstSelect.value = (gstRegistered === 'true') ? 'yes' : 'no';
+gstSelect.dispatchEvent(new Event('change'));
+
+        document.getElementById('editGstNumber').value = gstNumber;
+        document.getElementById('editContactPerson').value = contactPerson;
+        document.getElementById('editContactPersonEmail').value = contactPersonEmail;
+        document.getElementById('editContactPersonPhone').value = contactPersonPhone;
+        document.getElementById('editStartDate').value = startDate;
+        document.getElementById('editStatus').value = status;
+        document.getElementById('editLocationLink').value = locationLink;
+        document.getElementById('editProcessingFee').value = processingFee;
+        
+        // Handle Location Link Display
+        const editCurrentLinkSpan = document.getElementById('editCurrentLocationLink');
+        const editCurrentLinkUrl = document.getElementById('editCurrentLocationLinkUrl');
+        const previewEditBtn = document.getElementById('previewEditLocationBtn');
+        
+        if (locationLink && locationLink.trim()) {
+            editCurrentLinkSpan.style.display = 'inline';
+            editCurrentLinkUrl.href = locationLink;
+            previewEditBtn.style.display = 'block';
+        } else {
+            editCurrentLinkSpan.style.display = 'none';
+            previewEditBtn.style.display = 'none';
+        }
+        
+        
+const logoUrl = button.getAttribute('data-company-logo') || '';
+
+const logoPreviewBox = document.getElementById('currentLogoPreview');
+const logoImg = document.getElementById('editLogoPreviewImg');
+
+if (logoUrl) {
+    logoPreviewBox.style.display = 'block';
+    logoImg.src = logoUrl;
+} else {
+    logoPreviewBox.style.display = 'none';
+    logoImg.src = '';
+}
+
+
+
+        toggleEditGSTNumber();
+        
+        editCitySelect.innerHTML = '<option value="">-- Select State First --</option>';
+        editCitySelect.disabled = true;
+        editAreaSelect.innerHTML = '<option value="">-- Select City First --</option>';
+        editAreaSelect.disabled = true;
+        
+        if (state) {
+            editStateSelect.value = state;
+            editCitySelect.innerHTML = '<option value="">-- Loading Cities... --</option>';
+            editCitySelect.disabled = true;
+            
+            fetch(`/api/cities/${state}/`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(cities => {
+                    editCitySelect.innerHTML = '<option value="">-- Select City --</option>';
+                    cities.forEach(cityObj => {
+                        const option = document.createElement('option');
+                        option.value = cityObj.id;
+                        option.textContent = cityObj.name;
+                        editCitySelect.appendChild(option);
+                    });
+                    editCitySelect.disabled = false;
+                    
+                    if (city) {
+                        editCitySelect.value = city;
+                        editAreaSelect.innerHTML = '<option value="">-- Loading Areas... --</option>';
+                        editAreaSelect.disabled = true;
+                        
+                        fetch(`/api/areas/${city}/`)
+                            .then(response => {
+                                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                                return response.json();
+                            })
+                            .then(areas => {
+                                editAreaSelect.innerHTML = '<option value="">-- Select Area --</option>';
+                                areas.forEach(areaObj => {
+                                    const option = document.createElement('option');
+                                    option.value = areaObj.id;
+                                    option.textContent = areaObj.name;
+                                    editAreaSelect.appendChild(option);
+                                });
+                                editAreaSelect.disabled = false;
+                                
+                                if (area) {
+                                    editAreaSelect.value = area;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error loading areas:', error);
+                                editAreaSelect.innerHTML = '<option value="">-- Error Loading Areas --</option>';
+                                editAreaSelect.disabled = true;
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading cities:', error);
+                    editCitySelect.innerHTML = '<option value="">-- Error Loading Cities --</option>';
+                    editCitySelect.disabled = true;
+                });
+        }
+        
+        const modalEl = document.getElementById('editCompanyModal');
+
+if (!modalEl) {
+    console.error('Edit modal not found');
+    return;
+}
+
+const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+modal.show();
+
+    }
+
+    function deleteCompany(companyId, companyName) {
+        if (confirm(`Are you sure you want to delete ${companyName}?`)) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/companies/delete/${companyId}/`;
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            
+            form.appendChild(csrfInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    document.getElementById('companyFilter').addEventListener('change', function() {
+        const filter = this.value;
+        const cards = document.querySelectorAll('.company-card');
+        
+        cards.forEach(card => {
+            if (filter === 'all') {
+                card.style.display = 'block';
+            } else {
+                const cardType = card.getAttribute('data-type');
+                card.style.display = cardType === filter ? 'block' : 'none';
+            }
+        });
+    });
+
+    function exportToExcel() {
+        let exportUrl = '/export/companies/?';
+        exportUrl = exportUrl.replace(/[&?]$/, '');
+        
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Exporting...';
+        button.disabled = true;
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = exportUrl;
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            document.body.removeChild(iframe);
+        }, 2000);
+    }
+
+    document.getElementById('editLogo').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(file){
+        document.getElementById('editLogoPreviewImg').src = URL.createObjectURL(file);
+        document.getElementById('currentLogoPreview').style.display = 'block';
+    }
+});
+
+
+
+// ADD MODAL LOGO PREVIEW
+document.getElementById('addLogo').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    const previewBox = document.getElementById('addLogoPreviewBox');
+    const previewImg = document.getElementById('addLogoPreviewImg');
+
+    if(file){
+        previewImg.src = URL.createObjectURL(file);
+        previewBox.style.display = 'block';
+    } else {
+        previewImg.src = '';
+        previewBox.style.display = 'none';
+    }
+});
+const addModal = document.getElementById('addCompanyModal');
+
+addModal.addEventListener('show.bs.modal', function () {
+    document.getElementById('addLogo').value = '';
+    document.getElementById('addLogoPreviewImg').src = '';
+    document.getElementById('addLogoPreviewBox').style.display = 'none';
+});
+
+</script>
+{% endblock content %}

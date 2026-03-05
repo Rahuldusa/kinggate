@@ -1,0 +1,21 @@
+<tbody>
+    {% if data_logs %}
+        {% for log in data_logs %}
+            <tr>
+                <td>{{ log.customer.name }}</td>
+                <td>{{ log.customer.city }}</td>
+                <td><span class="badge bg-success">{{ log.status }}</span></td>
+                <td>{{ log.timestamp }}</td>
+                <td>
+                    <button class="icon-btn"><i class="bi bi-eye"></i></button>
+                    <button class="icon-btn"><i class="bi bi-pencil"></i></button>
+                    <button class="icon-btn delete"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="5" class="text-center">No records found.</td>
+        </tr>
+    {% endif %}
+</tbody>

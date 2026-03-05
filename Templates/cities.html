@@ -1,0 +1,590 @@
+{% extends "sidenavbar.html" %}
+{% load static %}
+{% block title %}City Management{% endblock %}
+{% block styles %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e429f;
+        --primary-light: #e8f0fe;
+        --success: #057a55;
+        --success-light: #def7ec;
+        --warning: #c27803;
+        --warning-light: #fdf6b2;
+        --danger: #c81e1e;
+        --danger-light: #fde8e8;
+        --info: #0369a1;
+        --info-light: #e0f2fe;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --surface-3: #f1f5f9;
+        --border: #e2e8f0;
+        --border-strong: #cbd5e1;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+        --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05);
+        --radius: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --font: 'DM Sans', sans-serif;
+        --font-mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: var(--font);
+        background: var(--surface-2);
+        color: var(--text-primary);
+        margin: 0; padding: 0;
+    }
+
+    .page-wrapper { padding: 24px; }
+
+    /* ── Toast ──────────────────────────────────────── */
+    .toast-container {
+        position: fixed;
+        top: 20px; left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex; flex-direction: column; gap: 10px;
+        min-width: 340px;
+    }
+
+    .toast-card {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        animation: slideDown 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-card.success { background: #f0fdf4; border-color: #86efac; }
+    .toast-card.error   { background: #fef2f2; border-color: #fca5a5; }
+    .toast-card.warning { background: #fffbeb; border-color: #fcd34d; }
+    .toast-card.info    { background: #eff6ff; border-color: #93c5fd; }
+
+    .toast-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+    .toast-card.success .toast-icon { color: #16a34a; }
+    .toast-card.error   .toast-icon { color: #dc2626; }
+    .toast-card.warning .toast-icon { color: #d97706; }
+    .toast-card.info    .toast-icon { color: #2563eb; }
+
+    .toast-body { flex: 1; font-size: 0.875rem; line-height: 1.5; }
+    .toast-close {
+        background: none; border: none; cursor: pointer;
+        color: var(--text-muted); padding: 0; font-size: 16px;
+    }
+    .toast-close:hover { color: var(--text-secondary); }
+
+    /* ── Page Header ────────────────────────────────── */
+    .page-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap; gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        font-size: 1.375rem; font-weight: 700;
+        color: var(--text-primary); margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    .page-title .title-icon {
+        width: 36px; height: 36px;
+        background: var(--primary); border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 16px;
+    }
+
+    /* ── Buttons ────────────────────────────────────── */
+    .btn-solid {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 14px; border-radius: var(--radius);
+        font-family: var(--font); font-size: 0.8125rem; font-weight: 600;
+        border: 1px solid transparent; cursor: pointer;
+        transition: all 0.15s; white-space: nowrap; height: 38px;
+        text-decoration: none;
+    }
+
+    .btn-primary-solid { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-primary-solid:hover {
+        background: var(--primary-dark); color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+    }
+
+    .btn-ghost {
+        background: transparent; border: none;
+        color: var(--text-muted); cursor: pointer;
+        padding: 6px 8px; border-radius: var(--radius);
+        font-size: 14px; transition: all 0.15s;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn-ghost:hover        { background: var(--surface-3); color: var(--text-primary); }
+    .btn-ghost.edit:hover   { color: var(--primary); background: var(--primary-light); }
+    .btn-ghost.delete:hover { color: var(--danger);  background: var(--danger-light); }
+
+    /* ── Table Card ─────────────────────────────────── */
+    .table-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden; box-shadow: var(--shadow);
+    }
+
+    .table-responsive { overflow-x: auto; }
+
+    .data-table { width: 100%; border-collapse: collapse; margin: 0; }
+
+    .data-table thead tr {
+        background: var(--surface-2);
+        border-bottom: 2px solid var(--border);
+    }
+
+    .data-table thead th {
+        padding: 11px 14px;
+        font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--text-muted); white-space: nowrap; border: none;
+    }
+
+    .data-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background 0.1s;
+    }
+
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: #fafbff; }
+
+    .data-table tbody td {
+        padding: 11px 14px; font-size: 0.875rem;
+        color: var(--text-primary); vertical-align: middle; border: none;
+    }
+
+    .sno-cell {
+        font-family: var(--font-mono); font-size: 0.75rem;
+        color: var(--text-muted); width: 42px;
+    }
+
+    .cell-name { font-weight: 600; color: var(--text-primary); }
+
+    .cell-meta {
+        font-size: 0.775rem; color: var(--text-muted);
+        display: flex; align-items: center; gap: 5px; margin-top: 2px;
+    }
+    .cell-meta i { font-size: 10px; }
+
+    .actions-cell { white-space: nowrap; }
+
+    .no-results {
+        text-align: center; padding: 60px 20px; color: var(--text-muted);
+    }
+    .no-results i { font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 12px; }
+    .no-results p { margin: 0; font-size: 0.9rem; }
+
+    /* ── Modals ─────────────────────────────────────── */
+    .modal-content {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        font-family: var(--font);
+    }
+
+    .modal-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .modal-title {
+        font-size: 1rem; font-weight: 700; color: var(--text-primary);
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    .modal-title .modal-icon {
+        width: 30px; height: 30px;
+        background: var(--primary-light); color: var(--primary);
+        border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+    }
+
+    .modal-body { padding: 24px; max-height: calc(100vh - 210px); overflow-y: auto; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
+
+    .form-label {
+        font-size: 0.8rem; font-weight: 600;
+        color: var(--text-secondary); margin-bottom: 5px; display: block;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 8px 12px;
+        font-family: var(--font); font-size: 0.875rem;
+        color: var(--text-primary); background: var(--surface);
+        width: 100%;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        height: 38px;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger); box-shadow: none;
+    }
+
+    .form-control.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(200,30,30,0.1);
+    }
+
+    .invalid-feedback {
+        font-size: 0.775rem; color: var(--danger); margin-top: 4px;
+    }
+
+    .btn-solid-modal {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 8px 18px; border-radius: var(--radius);
+        font-family: var(--font); font-size: 0.875rem; font-weight: 600;
+        border: 1px solid transparent; cursor: pointer;
+        transition: all 0.15s; height: 38px;
+    }
+
+    .btn-modal-primary   { background: var(--primary); color: white; }
+    .btn-modal-primary:hover   { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-modal-secondary { background: var(--surface); color: var(--text-secondary); border-color: var(--border); }
+    .btn-modal-secondary:hover { background: var(--surface-3); }
+
+    @media (max-width: 768px) {
+        .page-wrapper { padding: 16px; }
+        .page-header  { flex-direction: column; align-items: stretch; }
+        .data-table   { min-width: 500px; }
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+
+<!-- ── Toasts ─────────────────────────────────────────────────── -->
+<div class="toast-container" id="toastContainer">
+    {% for message in messages %}
+    <div class="toast-card {{ message.tags }}">
+        <div class="toast-icon">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-times-circle"></i>
+            {% elif message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>
+            {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+        </div>
+        <div class="toast-body">{{ message }}</div>
+        <button class="toast-close" onclick="this.closest('.toast-card').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+    <!-- ── Page Header ─────────────────────────────────────────── -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <span class="title-icon"><i class="fas fa-city"></i></span>
+            City Management
+        </h1>
+        <button class="btn-solid btn-primary-solid"
+                data-bs-toggle="modal" data-bs-target="#addCityModal">
+            <i class="fas fa-plus"></i> Add City
+        </button>
+    </div>
+
+    <!-- ── Table ───────────────────────────────────────────────── -->
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="sno-cell">#</th>
+                        <th>City Name</th>
+                        <th>State</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for city in cities %}
+                    <tr>
+                        <td class="sno-cell">{{ forloop.counter }}</td>
+                        <td><span class="cell-name">{{ city.name }}</span></td>
+                        <td>
+                            <div class="cell-meta">
+                                <i class="fas fa-map"></i>{{ city.state.name }}
+                            </div>
+                        </td>
+                        <td class="actions-cell">
+                            <button class="btn-ghost edit" title="Edit"
+                                data-city-id="{{ city.id }}"
+                                data-city-name="{{ city.name }}"
+                                data-city-state="{{ city.state.id }}"
+                                onclick="editCity(this)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-ghost delete" title="Delete"
+                                onclick="deleteCity('{{ city.id }}', '{{ city.name|escapejs }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="no-results">
+                                <i class="fas fa-city"></i>
+                                <p>No cities found. Add your first city to get started!</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div><!-- end page-wrapper -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL — Add City
+════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="addCityModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-icon"><i class="fas fa-city"></i></div>
+                    Add New City
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addCityForm" method="POST" action="{% url 'add_city' %}"
+                  onsubmit="return validateCityAdd(event)">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">City Name <span style="color:var(--danger)">*</span></label>
+                            <input type="text" class="form-control" id="cityName" name="city_name"
+                                   required placeholder="Enter city name">
+                            <div class="invalid-feedback" id="addCityError"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">State <span style="color:var(--danger)">*</span></label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="">— Select State —</option>
+                                {% for state in states %}
+                                <option value="{{ state.id }}">{{ state.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-solid-modal btn-modal-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-solid-modal btn-modal-primary">
+                        <i class="fas fa-plus"></i> Add City
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL — Edit City
+════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="editCityModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-icon"><i class="fas fa-edit"></i></div>
+                    Edit City
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editCityForm" method="POST"
+                  onsubmit="return validateCityEdit(event)">
+                {% csrf_token %}
+                <input type="hidden" id="editCityId" name="city_id">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">City Name <span style="color:var(--danger)">*</span></label>
+                            <input type="text" class="form-control" id="editCityName" name="city_name"
+                                   required placeholder="Enter city name">
+                            <div class="invalid-feedback" id="editCityError"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">State <span style="color:var(--danger)">*</span></label>
+                            <select class="form-select" id="editState" name="state" required>
+                                <option value="">— Select State —</option>
+                                {% for state in states %}
+                                <option value="{{ state.id }}">{{ state.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-solid-modal btn-modal-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-solid-modal btn-modal-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+
+/* ── Toasts — auto-dismiss ──────────────────────── */
+document.querySelectorAll('.toast-card').forEach(el => {
+    setTimeout(() => {
+        el.style.transition = 'opacity 0.4s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+    }, 5000);
+});
+
+/* ── Existing cities for duplicate check ────────── */
+const existingCities = [
+    {% for city in cities %}
+    { id: '{{ city.id }}', name: '{{ city.name|escapejs }}'.toLowerCase(), stateId: '{{ city.state.id }}' },
+    {% endfor %}
+];
+
+/* ── Validation — Add ───────────────────────────── */
+function validateCityAdd(event) {
+    const nameInput = document.getElementById('cityName');
+    const stateInput = document.getElementById('state');
+    const errorDiv  = document.getElementById('addCityError');
+    const cityName  = nameInput.value.trim().toLowerCase();
+    const stateId   = stateInput.value;
+
+    if (existingCities.find(c => c.name === cityName && c.stateId === stateId)) {
+        event.preventDefault();
+        nameInput.classList.add('is-invalid');
+        errorDiv.textContent = 'This city already exists in the selected state.';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+
+    nameInput.classList.remove('is-invalid');
+    errorDiv.style.display = 'none';
+    return true;
+}
+
+/* ── Validation — Edit ──────────────────────────── */
+function validateCityEdit(event) {
+    const nameInput = document.getElementById('editCityName');
+    const stateInput = document.getElementById('editState');
+    const errorDiv  = document.getElementById('editCityError');
+    const cityId    = document.getElementById('editCityId').value;
+    const cityName  = nameInput.value.trim().toLowerCase();
+    const stateId   = stateInput.value;
+
+    if (existingCities.find(c => c.name === cityName && c.stateId === stateId && c.id !== cityId)) {
+        event.preventDefault();
+        nameInput.classList.add('is-invalid');
+        errorDiv.textContent = 'This city already exists in the selected state.';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+
+    nameInput.classList.remove('is-invalid');
+    errorDiv.style.display = 'none';
+    return true;
+}
+
+/* ── Clear errors on change ─────────────────────── */
+function clearError(inputId, errorId) {
+    const el = document.getElementById(inputId);
+    if (el) el.addEventListener('input', () => {
+        el.classList.remove('is-invalid');
+        document.getElementById(errorId).style.display = 'none';
+    });
+}
+function clearErrorOnChange(selectId, inputId, errorId) {
+    const el = document.getElementById(selectId);
+    if (el) el.addEventListener('change', () => {
+        document.getElementById(inputId).classList.remove('is-invalid');
+        document.getElementById(errorId).style.display = 'none';
+    });
+}
+
+clearError('cityName',     'addCityError');
+clearError('editCityName', 'editCityError');
+clearErrorOnChange('state',     'cityName',     'addCityError');
+clearErrorOnChange('editState', 'editCityName', 'editCityError');
+
+/* ── Edit ───────────────────────────────────────── */
+function editCity(btn) {
+    const id    = btn.getAttribute('data-city-id');
+    const name  = btn.getAttribute('data-city-name');
+    const state = btn.getAttribute('data-city-state');
+
+    document.getElementById('editCityForm').action = `/cities/update/${id}/`;
+    document.getElementById('editCityId').value    = id;
+    document.getElementById('editCityName').value  = name;
+    document.getElementById('editState').value     = state;
+
+    document.getElementById('editCityName').classList.remove('is-invalid');
+    document.getElementById('editCityError').style.display = 'none';
+
+    bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('editCityModal')
+    ).show();
+}
+
+/* ── Delete ─────────────────────────────────────── */
+function deleteCity(id, name) {
+    if (!confirm(`Delete "${name}"?\n\nThis cannot be undone.`)) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/cities/delete/${id}/`;
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
+    csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+</script>
+{% endblock content %}

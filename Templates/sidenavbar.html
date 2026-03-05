@@ -1,0 +1,1243 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bill Manager - Dashboard{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    {% block styles %}{% endblock %}
+    <style>
+        /* ═══════════════════════════════════════════════
+           DESIGN SYSTEM TOKENS
+        ═══════════════════════════════════════════════ */
+        :root {
+            --primary: #1a56db;
+            --primary-dark: #1e429f;
+            --primary-light: #e8f0fe;
+            --success: #057a55;
+            --success-light: #def7ec;
+            --danger: #c81e1e;
+            --danger-light: #fde8e8;
+            --surface: #ffffff;
+            --surface-2: #f8fafc;
+            --surface-3: #f1f5f9;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05);
+            --radius: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --font: 'DM Sans', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --navbar-h: 64px;
+            --sidebar-w: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font);
+            background-color: var(--surface-2);
+            overflow-x: hidden;
+            color: var(--text-primary);
+        }
+
+        /* ═══════════════════════════════════════════════
+           TOP NAVBAR
+        ═══════════════════════════════════════════════ */
+        .top-navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: var(--navbar-h);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        /* ── Brand ── */
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .brand-text {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: opacity 0.2s;
+            font-family: var(--font);
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .brand-text:active { opacity: 0.7; }
+
+        .brand-text::after {
+            content: '';
+            position: absolute;
+            top: -2px; right: -8px;
+            width: 5px; height: 5px;
+            background-color: transparent;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .brand-text.unlocked::after {
+            background-color: rgba(5, 122, 85, 0.5);
+        }
+
+        .brand-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* ── Center filter section ── */
+        .navbar-center {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            justify-content: center;
+            max-width: 900px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group.hidden-until-unlock { display: none !important; }
+
+        .filter-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            font-family: var(--font);
+        }
+
+        .gst-select {
+            min-width: 155px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0 0.75rem;
+            font-size: 0.8125rem;
+            font-family: var(--font);
+            background-color: var(--surface);
+            color: var(--text-primary);
+            height: 36px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .gst-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+        }
+
+        .gst-select:disabled {
+            background-color: var(--surface-3);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .company-select {
+            min-width: 500px !important;
+            max-width: 650px !important;
+            width: 500px !important;
+        }
+
+        #applyFilterBtn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 1rem;
+            border-radius: var(--radius);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        #applyFilterBtn.hidden-until-unlock { display: none !important; }
+
+        #applyFilterBtn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+        }
+
+        #applyFilterBtn:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ── Right section ── */
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-info { display: flex; flex-direction: column; }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: var(--font);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font);
+        }
+
+        .btn-logout {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 0 1.125rem;
+            border-radius: var(--radius);
+            font-family: var(--font);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            height: 36px;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-logout:hover {
+            background-color: #a81919;
+            transform: translateY(-1px);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.375rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius);
+            transition: background 0.15s;
+        }
+
+        .mobile-menu-toggle:hover { background: var(--surface-3); }
+
+        /* ═══════════════════════════════════════════════
+           SIDEBAR
+        ═══════════════════════════════════════════════ */
+        .sidebar {
+            position: fixed;
+            top: var(--navbar-h);
+            left: 0;
+            width: var(--sidebar-w);
+            height: calc(100vh - var(--navbar-h));
+            background-color: #0f172a;
+            padding: 1rem 0;
+            overflow-y: auto;
+            z-index: 999;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 4px;
+        }
+
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+
+        .menu-item { margin-bottom: 2px; }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-family: var(--font);
+            font-weight: 500;
+            gap: 12px;
+            border-radius: 0;
+            position: relative;
+        }
+
+        .menu-link:hover {
+            background-color: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .menu-link.active {
+            background-color: rgba(26,86,219,0.15);
+            color: #93c5fd;
+            border-right: 3px solid var(--primary);
+        }
+
+        .menu-link.active .menu-icon { color: #60a5fa; }
+
+        .menu-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .menu-text {
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        /* ── Sidebar section label ── */
+        .menu-section-label {
+            padding: 12px 20px 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #475569;
+            font-family: var(--font);
+        }
+
+        /* ═══════════════════════════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════════════════════════ */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            margin-top: var(--navbar-h);
+            padding: 24px;
+            min-height: calc(100vh - var(--navbar-h));
+            transition: margin-left 0.3s ease;
+        }
+
+        /* ═══════════════════════════════════════════════
+           PASSWORD MODAL
+        ═══════════════════════════════════════════════ */
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(15,23,42,0.55);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .password-modal.active { display: flex; }
+
+        .password-modal-content {
+            background: var(--surface);
+            padding: 28px 28px 24px;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .password-modal-header {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font);
+        }
+
+        .password-modal-header i {
+            width: 32px; height: 32px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .password-input-group { margin-bottom: 20px; }
+
+        .password-input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-family: var(--font);
+        }
+
+        .password-input-group input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-family: var(--font);
+            color: var(--text-primary);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            height: 38px;
+        }
+
+        .password-input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+        }
+
+        .password-modal-buttons {
+            display: flex;
+            gap: 0.625rem;
+            justify-content: flex-end;
+        }
+
+        .password-modal-buttons button {
+            padding: 0 18px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.15s;
+        }
+
+        .btn-cancel {
+            background-color: var(--surface-3);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-cancel:hover { background-color: var(--border); }
+
+        .btn-unlock {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-unlock:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.775rem;
+            margin-top: 6px;
+            display: none;
+            font-family: var(--font);
+        }
+
+        .error-message.active { display: block; }
+
+        /* ═══════════════════════════════════════════════
+           LOADING OVERLAY
+        ═══════════════════════════════════════════════ */
+        .loading-overlay {
+            position: fixed;
+            top: var(--navbar-h);
+            left: 0; right: 0; bottom: 0;
+            background-color: rgba(248,250,252,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .loading-spinner { text-align: center; }
+
+        .loading-spinner .spinner-border {
+            width: 3rem; height: 3rem;
+            color: var(--primary);
+        }
+
+        .loading-text {
+            margin-top: 1rem;
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-family: var(--font);
+        }
+
+        /* ═══════════════════════════════════════════════
+           SIDEBAR OVERLAY (mobile)
+        ═══════════════════════════════════════════════ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: var(--navbar-h);
+            left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.45);
+            z-index: 998;
+        }
+
+        /* ═══════════════════════════════════════════════
+           CONTENT CARD (utility, used by child pages)
+        ═══════════════════════════════════════════════ */
+        .content-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .content-card h2 {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.375rem;
+            font-family: var(--font);
+        }
+
+        .content-card p { color: var(--text-muted); margin-bottom: 0; font-family: var(--font); }
+
+        /* ═══════════════════════════════════════════════
+           SELECT2 OVERRIDES — unchanged behaviour
+        ═══════════════════════════════════════════════ */
+        .select2-container--bootstrap-5 .select2-selection {
+            min-height: 36px !important;
+            max-height: 36px !important;
+            font-size: 0.8125rem;
+            font-family: var(--font);
+            min-width: 500px !important;
+            overflow: hidden !important;
+            border-color: var(--border);
+            border-radius: var(--radius);
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple {
+            min-width: 500px !important;
+            min-height: 36px !important;
+            max-height: 36px !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+            background-color: var(--primary-light);
+            border: 1px solid #bfdbfe;
+            color: var(--primary);
+            padding: 0.1rem 0.4rem;
+            font-size: 0.7rem !important;
+            max-width: none !important;
+            white-space: nowrap !important;
+            word-wrap: normal !important;
+            border-radius: 5px;
+            line-height: 1.2;
+            margin: 2px !important;
+            flex-shrink: 0;
+            font-family: var(--font);
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+            color: var(--primary);
+            margin-right: 0.25rem;
+            font-weight: bold;
+            font-size: 0.7rem !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover {
+            color: var(--danger);
+        }
+
+        span.select2-selection__choice { font-size: 0.7rem !important; }
+
+        .select2-container {
+            width: 500px !important;
+            min-width: 500px !important;
+        }
+
+        .select2-dropdown {
+            min-width: 500px !important;
+            width: 500px !important;
+            font-size: 0.8125rem;
+            font-family: var(--font);
+            border-color: var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+        }
+
+        .select2-results__option {
+            padding: 0.5rem 1rem;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            font-family: var(--font);
+        }
+
+        .select2-results__option--highlighted {
+            background-color: var(--primary) !important;
+        }
+
+        #select2-companyFilter-container { min-width: 500px !important; }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-search__field {
+            min-width: 200px !important;
+            font-family: var(--font);
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 0.25rem;
+            width: 100% !important;
+            padding-right: 30px;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            align-items: center !important;
+            max-height: 32px !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered::-webkit-scrollbar {
+            height: 0px;
+        }
+
+        .select2-selection__choice {
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        /* ═══════════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════════ */
+        @media (max-width: 1200px) {
+            .navbar-center { max-width: 550px; }
+            .company-select { min-width: 300px; max-width: 400px; }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
+            .main-content { margin-left: 0; }
+            .mobile-menu-toggle { display: block; }
+            .user-info { display: none; }
+            .navbar-center { display: none; }
+        }
+
+        @media (max-width: 576px) {
+            .top-navbar { padding: 0 1rem; }
+            .navbar-brand { font-size: 1.125rem; }
+            .main-content { padding: 16px; }
+            .sidebar { width: 240px; }
+            .btn-logout { padding: 0 0.75rem; }
+            .btn-logout .logout-text { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Password Modal ──────────────────────────────────────────── -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-modal-content">
+            <div class="password-modal-header">
+                <i class="fas fa-lock"></i>
+                Enter Password to Access Filters
+            </div>
+            <div class="password-input-group">
+                <label for="filterPassword">Password</label>
+                <input type="password" id="filterPassword" placeholder="Enter password" autocomplete="off">
+                <div class="error-message" id="passwordError">Incorrect password. Please try again.</div>
+            </div>
+            <div class="password-modal-buttons">
+                <button class="btn-cancel" onclick="closePasswordModal()">Cancel</button>
+                <button class="btn-unlock" onclick="validatePassword()">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Loading Overlay ─────────────────────────────────────────── -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text">Updating data...</div>
+        </div>
+    </div>
+
+    <!-- ── Top Navbar ──────────────────────────────────────────────── -->
+    <nav class="top-navbar">
+        <div class="d-flex align-items-center gap-3">
+            <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="navbar-brand d-flex align-items-center gap-3">
+                <img src="{% static 'images/logo.jpeg' %}"
+                     alt="Bill Manager Logo"
+                     class="brand-logo">
+                <span class="brand-text {% if filter_unlocked %}unlocked{% endif %}"
+                      id="brandText"
+                      onclick="toggleLock()"
+                      title="{% if filter_unlocked %}Click to lock filters{% else %}Click to unlock filters{% endif %}">
+                    Bill Manager
+                </span>
+            </div>
+        </div>
+
+        <!-- Center Filter Section -->
+        <div class="navbar-center" id="filterSection">
+            <div class="filter-group {% if not filter_unlocked %}hidden-until-unlock{% endif %}" id="gstFilterGroup">
+                <label class="filter-label">GST Type:</label>
+                <select id="gstFilter" class="gst-select" {% if not filter_unlocked %}disabled{% endif %}>
+                    <option value="gst" {% if selected_gst_type == 'gst' %}selected{% endif %}>GST Registered</option>
+                    <option value="non-gst" {% if selected_gst_type == 'non-gst' %}selected{% endif %}>Non-GST</option>
+                </select>
+            </div>
+
+            <div class="filter-group {% if not filter_unlocked %}hidden-until-unlock{% endif %}" id="companyFilterGroup">
+                <label class="filter-label">Companies:</label>
+                <select id="companyFilter" class="company-select" multiple="multiple" {% if not filter_unlocked %}disabled{% endif %}>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+
+            <button id="applyFilterBtn"
+                    class="{% if not filter_unlocked %}hidden-until-unlock{% endif %}"
+                    {% if not filter_unlocked %}disabled{% endif %}>
+                <i class="fas fa-filter"></i> Apply
+            </button>
+        </div>
+
+        <div class="navbar-right">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-role">Administrator</span>
+                </div>
+            </div>
+
+            <a href="{% url 'logout' %}" style="text-decoration:none;">
+                <button class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="logout-text">Logout</span>
+                </button>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+        <ul class="sidebar-menu">
+            {% if role_permissions.dashboard_v %}
+            <li class="menu-item">
+                <a href="{% url 'dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-th-large menu-icon"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.customer_management_v %}
+            <li class="menu-item">
+                <a href="{% url 'customer_management' %}" class="menu-link {% if request.resolver_match.url_name == 'customer_management' or request.resolver_match.url_name == 'active_customers_list' or request.resolver_match.url_name == 'inactive_customers_list' %}active{% endif %}">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span class="menu-text">Customer Management</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.company_master_v %}
+            <li class="menu-item">
+                <a href="{% url 'company_management' %}" class="menu-link {% if request.resolver_match.url_name == 'company_management' %}active{% endif %}">
+                    <i class="fas fa-building menu-icon"></i>
+                    <span class="menu-text">Company Master</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.subscription_master_v %}
+            <li class="menu-item">
+                <a href="{% url 'subscription_plan_management' %}" class="menu-link {% if '/subscription-plans/' in request.path %}active{% endif %}">
+                    <i class="fas fa-credit-card menu-icon"></i>
+                    <span class="menu-text">Subscription Master</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.billing_invoices_v %}
+            <li class="menu-item">
+                <a href="{% url 'billing_management' %}" class="menu-link {% if '/billing/' in request.path or request.resolver_match.url_name == 'create_billing' %}active{% endif %}">
+                    <i class="fas fa-file-invoice menu-icon"></i>
+                    <span class="menu-text">Billing &amp; Invoices</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.roles_v %}
+            <li class="menu-item">
+                <a href="{% url 'role_list' %}" class="menu-link {% if '/roles/' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-tag menu-icon"></i>
+                    <span class="menu-text">Roles</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.users_v %}
+            <li class="menu-item">
+                <a href="{% url 'user_list' %}" class="menu-link {% if '/users/' in request.path %}active{% endif %}">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span class="menu-text">Users</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.manual_receipts_v %}
+            <li class="menu-item">
+                <a href="{% url 'manual_billing' %}" class="menu-link {% if '/manual-billing/' in request.path %}active{% endif %}">
+                    <i class="fas fa-money-check-alt menu-icon"></i>
+                    <span class="menu-text">Manual Receipt Update</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.reports_v %}
+            <li class="menu-item">
+                <a href="{% url 'financial_sales_report' %}" class="menu-link {% if request.resolver_match.url_name == 'financial_sales_report' %}active{% endif %}">
+                    <i class="fas fa-chart-bar menu-icon"></i>
+                    <span class="menu-text">Reports &amp; Analytics</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.data_logs_v %}
+            <li class="menu-item">
+                <a href="{% url 'reports' %}" class="menu-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+                    <i class="fas fa-database menu-icon"></i>
+                    <span class="menu-text">Ledger</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.settings_v %}
+            <li class="menu-item">
+                <a href="{% url 'settings_view' %}" class="menu-link {% if request.resolver_match.url_name in 'settings_view city_list state_list area_list' %}active{% endif %}">
+                    <i class="fas fa-cog menu-icon"></i>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.payment_approval_v %}
+            <li class="menu-item">
+                <a href="{% url 'payment_approval_list' %}" class="menu-link {% if request.resolver_match.url_name == 'payment_approval_list' %}active{% endif %}">
+                    <i class="fas fa-check-circle menu-icon"></i>
+                    <span class="menu-text">Approve Payments</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if role_permissions.user_logs_v %}
+            <li class="menu-item">
+                <a href="{% url 'user_activity_logs' %}" class="menu-link {% if request.resolver_match.url_name == 'user_activity_logs' %}active{% endif %}">
+                    <i class="fas fa-user-clock menu-icon"></i>
+                    <span class="menu-text">User Logs</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </aside>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+        {% block content %}
+        <!-- Child page will appear here -->
+        {% endblock %}
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <script>
+/* ══════════════════════════════════════════════════
+   ALL ORIGINAL JS — UNCHANGED
+══════════════════════════════════════════════════ */
+let allCompanies = [];
+let selectedCompaniesFromServer = {{ selected_company_ids|default:"[]"|safe }};
+let gstTypeFromServer = '{{ selected_gst_type|default:"gst" }}';
+let isFilterUnlocked = {{ filter_unlocked|default:"false"|lower }};
+
+// Toggle Lock Function - Opens password modal if locked, locks if unlocked
+function toggleLock() {
+    if (isFilterUnlocked) {
+        lockFilters();
+    } else {
+        openPasswordModal();
+    }
+}
+
+// Password Modal Functions
+function openPasswordModal() {
+    $('#passwordModal').addClass('active');
+    $('#filterPassword').val('');
+    $('#passwordError').removeClass('active');
+    setTimeout(function() {
+        $('#filterPassword').focus();
+    }, 100);
+}
+
+function closePasswordModal() {
+    $('#passwordModal').removeClass('active');
+    $('#filterPassword').val('');
+    $('#passwordError').removeClass('active');
+}
+
+function validatePassword() {
+    const password = $('#filterPassword').val();
+
+    $('#loadingOverlay').addClass('active');
+
+    $.ajax({
+        url: '{% url "validate_filter_password" %}',
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        contentType: 'application/json',
+        data: JSON.stringify({
+            password: password
+        }),
+        success: function(response) {
+            $('#loadingOverlay').removeClass('active');
+
+            if (response.success) {
+                isFilterUnlocked = true;
+                unlockFilters();
+                closePasswordModal();
+            } else {
+                $('#passwordError').addClass('active');
+                $('#filterPassword').val('').focus();
+            }
+        },
+        error: function(xhr) {
+            $('#loadingOverlay').removeClass('active');
+            alert('Error validating password. Please try again.');
+        }
+    });
+}
+
+// Lock filters and reset to defaults
+function lockFilters() {
+    $('#loadingOverlay').addClass('active');
+
+    $.ajax({
+        url: '{% url "lock_filters" %}',
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                window.location.reload();
+            } else {
+                $('#loadingOverlay').removeClass('active');
+                alert('Error locking filters: ' + response.message);
+            }
+        },
+        error: function(xhr) {
+            $('#loadingOverlay').removeClass('active');
+            alert('Error locking filters. Please try again.');
+        }
+    });
+}
+
+$(document).on('keypress', '#filterPassword', function(e) {
+    if (e.which === 13) {
+        validatePassword();
+    }
+});
+
+function unlockFilters() {
+    $('#gstFilterGroup').removeClass('hidden-until-unlock').show();
+    $('#companyFilterGroup').removeClass('hidden-until-unlock').show();
+    $('#applyFilterBtn').removeClass('hidden-until-unlock').show();
+
+    $('#gstFilter').prop('disabled', false);
+    $('#companyFilter').prop('disabled', false);
+    $('#applyFilterBtn').prop('disabled', false);
+
+    $('#brandText')
+        .addClass('unlocked')
+        .attr('title', 'Click to lock filters');
+}
+
+$(document).ready(function() {
+    if (isFilterUnlocked) {
+        unlockFilters();
+    }
+
+    if (!gstTypeFromServer || gstTypeFromServer === '') {
+        gstTypeFromServer = 'gst';
+    }
+    $('#gstFilter').val(gstTypeFromServer);
+
+    $('#companyFilter').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select companies...',
+        allowClear: true,
+        closeOnSelect: false,
+        width: '500px',
+        dropdownAutoWidth: false,
+        minimumResultsForSearch: 0,
+        disabled: !isFilterUnlocked
+    });
+
+    setTimeout(function() {
+        $('.select2-container').css({
+            'width': '500px',
+            'min-width': '500px'
+        });
+    }, 100);
+
+    fetchCompanies();
+
+    $('#gstFilter').on('change', function() {
+        if (isFilterUnlocked) {
+            const gstType = $(this).val();
+            filterCompanies(gstType);
+        }
+    });
+
+    $('#companyFilter').on('change', function() {
+        if (isFilterUnlocked) {
+            const selected = $(this).val() || [];
+        }
+    });
+
+    $('#applyFilterBtn').on('click', function() {
+        if (isFilterUnlocked) {
+            applyFilters();
+        }
+    });
+});
+
+function fetchCompanies() {
+    $.ajax({
+        url: '{% url "get_companies" %}',
+        method: 'GET',
+        success: function(data) {
+            allCompanies = data.companies;
+
+            const currentGstType = $('#gstFilter').val() || 'gst';
+
+            filterCompanies(currentGstType);
+
+            if (selectedCompaniesFromServer && selectedCompaniesFromServer.length > 0) {
+                setTimeout(function() {
+                    const stringIds = selectedCompaniesFromServer.map(id => String(id));
+                    $('#companyFilter').val(stringIds).trigger('change.select2');
+                }, 300);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching companies:', error);
+        }
+    });
+}
+
+function populateCompanyDropdown(companies) {
+    const $select = $('#companyFilter');
+    $select.empty();
+
+    companies.forEach(company => {
+        const gstLabel = company.gst_registered ? ' (GST)' : ' (Non-GST)';
+        $select.append(new Option(company.name + gstLabel, company.id, false, false));
+    });
+
+    $select.trigger('change');
+}
+
+function filterCompanies(gstType) {
+    let filteredCompanies = allCompanies;
+
+    if (gstType === 'gst') {
+        filteredCompanies = allCompanies.filter(c => c.gst_registered === true);
+    } else if (gstType === 'non-gst') {
+        filteredCompanies = allCompanies.filter(c => c.gst_registered === false);
+    }
+
+    populateCompanyDropdown(filteredCompanies);
+
+    if (selectedCompaniesFromServer && selectedCompaniesFromServer.length > 0) {
+        setTimeout(function() {
+            const filteredIds = filteredCompanies.map(c => String(c.id));
+            const validSelections = selectedCompaniesFromServer
+                .map(id => String(id))
+                .filter(id => filteredIds.includes(id));
+
+            $('#companyFilter').val(validSelections).trigger('change.select2');
+        }, 100);
+    }
+}
+
+function applyFilters() {
+    const gstType = $('#gstFilter').val();
+    const selectedCompanies = $('#companyFilter').val() || [];
+
+    $('#loadingOverlay').addClass('active');
+
+    $.ajax({
+        url: '{% url "update_company_filter" %}',
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        contentType: 'application/json',
+        data: JSON.stringify({
+            gst_type: gstType,
+            companies: selectedCompanies
+        }),
+        success: function(response) {
+            if (response.success) {
+                selectedCompaniesFromServer = response.companies;
+                gstTypeFromServer = response.gst_type;
+
+                window.location.reload();
+            } else {
+                $('#loadingOverlay').removeClass('active');
+                alert('Error updating filters: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            $('#loadingOverlay').removeClass('active');
+
+            let errorMessage = 'Error updating filters. Please try again.';
+            try {
+                const errorData = JSON.parse(xhr.responseText);
+                if (errorData.message) {
+                    errorMessage = errorData.message;
+                }
+            } catch (e) {}
+            alert(errorMessage);
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+document.querySelectorAll('.menu-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 992) {
+            toggleSidebar();
+        }
+    });
+});
+
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 992) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+});
+
+window.getSelectedCompanies = function() {
+    return $('#companyFilter').val() || [];
+};
+
+window.getGSTFilter = function() {
+    return $('#gstFilter').val();
+};
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
