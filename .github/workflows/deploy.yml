@@ -20,15 +20,19 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
+      - name: Test SSH Connection
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} "echo SSH SUCCESS"
+
       - name: Deploy Files
         run: |
           rsync -avz --delete \
-          -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
+          -e "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" \
           ./ root@${{ secrets.SERVER_IP }}:/var/www/djangoapp/
 
       - name: Run Django
         run: |
-          ssh -i ~/.ssh/id_ed25519 root@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes root@${{ secrets.SERVER_IP }} << 'EOF'
           cd /var/www/djangoapp
 
           python3 -m venv venv || true
@@ -38,7 +42,6 @@ jobs:
           pip install -r requirements.txt
 
           python manage.py migrate
-
 
           pkill -f "runserver 8080" || true
           nohup python manage.py runserver 0.0.0.0:8080 &
