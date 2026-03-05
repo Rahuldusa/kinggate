@@ -35,7 +35,7 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes root@${{ secrets.SERVER_IP }} << 'EOF'
           cd /var/www/djangoapp
 
-          python3 -m venv venv || true
+          python3.11 -m venv venv || true
           source venv/bin/activate
 
           pip install --upgrade pip
