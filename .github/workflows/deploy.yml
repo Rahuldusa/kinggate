@@ -1,3 +1,55 @@
+# name: Django Deploy
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Setup SSH
+#         run: |
+#           mkdir -p ~/.ssh
+#           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+#           chmod 600 ~/.ssh/id_ed25519
+#           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+#       - name: Test SSH Connection
+#         run: |
+#           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} "echo SSH SUCCESS"
+
+#       - name: Deploy Files
+#         run: |
+#           rsync -avz --delete \
+#           -e "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" \
+#           ./ root@${{ secrets.SERVER_IP }}:/var/www/djangoapp/
+
+#       - name: Run Django
+#         run: |
+#           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes root@${{ secrets.SERVER_IP }} << 'EOF'
+#           cd /var/www/djangoapp
+
+#           python3.11 -m venv venv || true
+#           source venv/bin/activate
+
+#           pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#           python manage.py migrate
+
+#           pkill -f "runserver 8080" || true
+#           nohup python manage.py runserver 0.0.0.0:8080 &
+
+
+#           EOF
+
+
 name: Django Deploy
 
 on:
@@ -33,6 +85,7 @@ jobs:
       - name: Run Django
         run: |
           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes root@${{ secrets.SERVER_IP }} << 'EOF'
+
           cd /var/www/djangoapp
 
           python3.11 -m venv venv || true
@@ -43,8 +96,14 @@ jobs:
 
           python manage.py migrate
 
-          pkill -f "runserver 8080" || true
-          nohup python manage.py runserver 0.0.0.0:8080 &
+          # Kill previous Django server
+          pkill -f "runserver 0.0.0.0:8080" || true
 
+          # Start Django in background
+          nohup venv/bin/python manage.py runserver 0.0.0.0:8080 > django.log 2>&1 &
+
+          echo "Django server started in background"
+
+          exit
 
           EOF
